@@ -3,7 +3,10 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../generated/prisma/client.js';
 
 @Injectable()
-export class PrismaService extends PrismaClient implements OnApplicationShutdown {
+export class PrismaService
+  extends PrismaClient
+  implements OnApplicationShutdown
+{
   constructor() {
     const databaseUrl = process.env.DATABASE_URL;
 

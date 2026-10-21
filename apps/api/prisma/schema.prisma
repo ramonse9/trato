@@ -6,3 +6,140 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+enum EtapaComercial {
+  POR_CONTACTAR
+  BUSCANDO_ENCARGADO
+  CONTACTADO
+  DEMO_PENDIENTE
+  DEMO_REALIZADA
+  PROPUESTA_ENVIADA
+  EN_NEGOCIACION
+  CLIENTE
+  DESCARTADO
+
+  @@map("etapa_comercial")
+}
+
+enum NivelInteres {
+  SIN_EVALUAR
+  BAJO
+  MEDIO
+  ALTO
+
+  @@map("nivel_interes")
+}
+
+enum TipoActividad {
+  LLAMADA
+  WHATSAPP
+  VISITA
+  DEMO
+  NOTA
+
+  @@map("tipo_actividad")
+}
+
+enum TipoTarea {
+  LLAMADA
+  WHATSAPP
+  VISITA
+  DEMO
+  ENVIAR_PROPUESTA
+  OTRO
+
+  @@map("tipo_tarea")
+}
+
+enum EstadoTarea {
+  PENDIENTE
+  COMPLETADA
+
+  @@map("estado_tarea")
+}
+
+model Usuario {
+  id            String              @id @default(uuid()) @db.Uuid
+  nombre        String              @db.VarChar(120)
+  correo        String              @unique @db.VarChar(254)
+  creadoEn      DateTime            @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoEn DateTime            @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  proyectos     ProyectoComercial[]
+
+  @@map("usuarios")
+}
+
+model ProyectoComercial {
+  id            String              @id @default(uuid()) @db.Uuid
+  usuarioId     String              @map("usuario_id") @db.Uuid
+  nombre        String              @db.VarChar(160)
+  descripcion   String?             @db.Text
+  creadoEn      DateTime            @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoEn DateTime            @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  archivadoEn   DateTime?           @map("archivado_en") @db.Timestamptz(3)
+  usuario       Usuario             @relation(fields: [usuarioId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  registros     RegistroComercial[]
+
+  @@unique([usuarioId, nombre])
+  @@index([usuarioId, archivadoEn])
+  @@map("proyectos_comerciales")
+}
+
+model RegistroComercial {
+  id                String             @id @default(uuid()) @db.Uuid
+  proyectoId        String             @map("proyecto_id") @db.Uuid
+  nombreNegocio     String             @map("nombre_negocio") @db.VarChar(180)
+  nombreEncargado   String?            @map("nombre_encargado") @db.VarChar(160)
+  telefono          String?            @db.VarChar(16)
+  correo            String?            @db.VarChar(254)
+  direccion         String?            @db.Text
+  latitud           Decimal?           @db.Decimal(9, 6)
+  longitud          Decimal?           @db.Decimal(9, 6)
+  notasGenerales    String?            @map("notas_generales") @db.Text
+  etapa             EtapaComercial     @default(POR_CONTACTAR)
+  nivelInteres      NivelInteres       @default(SIN_EVALUAR) @map("nivel_interes")
+  motivoDescarte    String?            @map("motivo_descarte") @db.Text
+  creadoEn          DateTime           @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoEn     DateTime           @updatedAt @map("actualizado_en") @db.Timestamptz(3)
+  archivadoEn       DateTime?          @map("archivado_en") @db.Timestamptz(3)
+  proyecto          ProyectoComercial  @relation(fields: [proyectoId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  actividades       Actividad[]
+  tareasSeguimiento TareaSeguimiento[]
+
+  @@unique([id, proyectoId])
+  @@index([proyectoId, etapa, archivadoEn])
+  @@index([proyectoId, nivelInteres])
+  @@map("registros_comerciales")
+}
+
+model Actividad {
+  id         String            @id @default(uuid()) @db.Uuid
+  proyectoId String            @map("proyecto_id") @db.Uuid
+  registroId String            @map("registro_id") @db.Uuid
+  tipo       TipoActividad
+  detalle    String            @db.Text
+  ocurridaEn DateTime          @default(now()) @map("ocurrida_en") @db.Timestamptz(3)
+  creadaEn   DateTime          @default(now()) @map("creada_en") @db.Timestamptz(3)
+  registro   RegistroComercial @relation(fields: [registroId, proyectoId], references: [id, proyectoId], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([proyectoId, registroId, ocurridaEn(sort: Desc)])
+  @@map("actividades")
+}
+
+model TareaSeguimiento {
+  id               String            @id @default(uuid()) @db.Uuid
+  proyectoId       String            @map("proyecto_id") @db.Uuid
+  registroId       String            @map("registro_id") @db.Uuid
+  descripcion      String            @db.VarChar(240)
+  tipo             TipoTarea
+  fechaVencimiento DateTime          @map("fecha_vencimiento") @db.Date
+  estado           EstadoTarea       @default(PENDIENTE)
+  completadaEn     DateTime?         @map("completada_en") @db.Timestamptz(3)
+  creadaEn         DateTime          @default(now()) @map("creada_en") @db.Timestamptz(3)
+  actualizadaEn    DateTime          @updatedAt @map("actualizada_en") @db.Timestamptz(3)
+  registro         RegistroComercial @relation(fields: [registroId, proyectoId], references: [id, proyectoId], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([proyectoId, estado, fechaVencimiento])
+  @@index([proyectoId, registroId, estado, fechaVencimiento])
+  @@map("tareas_seguimiento")
+}

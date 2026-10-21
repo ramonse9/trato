@@ -5,4 +5,5 @@ coverage/
 .env
 .DS_Store
 *.log
+*.tsbuildinfo
 apps/api/src/generated/prisma/

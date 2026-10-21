@@ -46,6 +46,24 @@ Trato será una aplicación web privada para registrar y dar seguimiento a clien
 
 Las versiones se eligieron el 21 de octubre de 2026 consultando la documentación oficial: Angular 22 está en soporte activo y requiere Node.js 22.22.3, 24.15 o 26; NestJS 12 exige esas versiones para sus generadores; Prisma 7 es la línea estable recomendada para producción y PostgreSQL 18 es la versión actual soportada.
 
+## Modelo comercial
+
+- `Usuario` es propietario de sus proyectos comerciales.
+- `ProyectoComercial` es la frontera de aislamiento de la cartera.
+- `RegistroComercial` representa al prospecto o cliente dentro de un único proyecto. La etapa `CLIENTE` identifica la conversión sin mantener un tipo redundante.
+- `Actividad` conserva eventos históricos de llamada, WhatsApp, visita, demo o nota.
+- `TareaSeguimiento` conserva próximas acciones pendientes o completadas.
+- Actividades y tareas incluyen `proyectoId` y usan una llave foránea compuesta con el registro. PostgreSQL rechaza cualquier relación que cruce proyectos.
+- No existe agenda global ni una relación para compartir registros entre proyectos.
+
+La próxima acción no se almacena como un campo duplicado: se obtiene buscando la tarea `PENDIENTE` con `fechaVencimiento` más cercana dentro del proyecto y registro. “Esperando respuesta” y “Visitar en un mes” son descripciones de tareas con fecha, nunca niveles de interés.
+
+Los vencimientos usan el tipo PostgreSQL `DATE` y se intercambiarán como valores `YYYY-MM-DD`. Las actividades, auditoría y fechas de completado usan `TIMESTAMPTZ`; se guardan en UTC y se presentan en `America/Mazatlan`.
+
+El teléfono, cuando existe, debe usar formato E.164 con código de país. Las coordenadas se guardan juntas y PostgreSQL valida sus rangos. Una tarea completada debe tener `completadaEn` y una pendiente no puede tenerla.
+
+El seed usa información ficticia, no incluye contraseñas ni tokens, y se detiene explícitamente cuando `NODE_ENV=production`.
+
 ## Principios de entrega
 
 - Cada etapa debe terminar con una parte funcional y verificable.
