@@ -4,7 +4,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { FollowUpStatusBadge } from '../../components/follow-up-status/follow-up-status';
 import {
@@ -39,7 +39,6 @@ import {
 })
 export class Records {
   private readonly api = inject(RecordsService);
-  private readonly router = inject(Router);
   readonly context = inject(ProjectContextService);
   private request?: Subscription;
   private requestGeneration = 0;
@@ -103,11 +102,6 @@ export class Records {
     if (this.page() >= this.totalPages()) return;
     this.page.update((value) => value + 1);
     this.load();
-  }
-
-  open(recordId: string): void {
-    const projectId = this.context.activeProject()?.id;
-    if (projectId) void this.router.navigate(['/p', projectId, 'records', recordId]);
   }
 
   retry(): void {

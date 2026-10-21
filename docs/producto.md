@@ -127,6 +127,17 @@ Las rutas de cartera llevan contexto explícito: `/api/projects/:projectId/recor
 - Los enlaces externos parten de prefijos HTTPS constantes, codifican los datos variables, abren en otra pestaña y usan `rel="noopener noreferrer"`.
 - No se usa Maps JavaScript API, Places API, geocodificación, autocompletado, claves, facturación ni servicios externos de pago.
 
+## Uso diario desde el celular
+
+- La cartera móvil presenta cada registro como una tarjeta y mantiene visible la acción “Registrar contacto”. El acceso abre directamente el formulario, desplaza la ficha hasta él y coloca el foco en el resumen para evitar pasos intermedios.
+- El alta de un contacto reúne tipo, fecha, resumen y nivel de interés como datos principales. En el mismo envío se puede guardar un resultado y crear la próxima acción; la actividad, el interés y la tarea se actualizan de manera transaccional e idempotente.
+- Los formularios bloquean reenvíos mientras una solicitud está en curso. Ante un error recuperable conservan valores e identificador de solicitud para poder reintentar sin duplicar la operación.
+- La ficha y el alta de prospectos advierten antes de navegar, recargar o cerrar la pestaña si existen cambios visibles sin guardar. Una cancelación explícita limpia únicamente el formulario que se decidió descartar.
+- La vista Seguimientos pertenece siempre al proyecto seleccionado. Permite consultar pendientes, completados o todos y acotar por fechas de calendario; el backend vuelve a validar propietario y proyecto, y excluye registros archivados o descartados.
+- Cambiar de proyecto cancela las lecturas en curso y reinicia filtros y resultados. Los errores mantienen filtros editados para facilitar el reintento y las listas vacías ofrecen una acción clara para limpiarlos.
+- Controles principales y acciones en tarjetas tienen un área táctil mínima de 44 px. Los campos usan etiquetas visibles, el foco de teclado es perceptible y los estados no dependen solamente del color.
+- Esta etapa no incorpora modo sin conexión, notificaciones push ni automatizaciones.
+
 ## Principios de entrega
 
 - Cada etapa debe terminar con una parte funcional y verificable.

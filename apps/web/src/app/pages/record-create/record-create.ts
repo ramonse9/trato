@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, effect, inject, signal } from '@angular/core';
+import { Component, effect, HostListener, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -60,6 +60,7 @@ export class RecordCreate {
         this.api.create(scope.projectId, this.form.controls.nombreNegocio.value),
       );
       if (this.context.isCurrent(scope)) {
+        this.form.markAsPristine();
         await this.router.navigate(['/p', scope.projectId, 'records', record.id]);
       }
     } catch (error) {
@@ -71,6 +72,18 @@ export class RecordCreate {
         );
         this.saving.set(false);
       }
+    }
+  }
+
+  hasUnsavedChanges(): boolean {
+    return this.form.dirty && !this.saving();
+  }
+
+  @HostListener('window:beforeunload', ['$event'])
+  confirmBrowserExit(event: BeforeUnloadEvent): void {
+    if (this.hasUnsavedChanges()) {
+      event.preventDefault();
+      event.returnValue = '';
     }
   }
 }

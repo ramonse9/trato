@@ -6,7 +6,7 @@
         <mat-card-subtitle>Contactos y cambios relevantes</mat-card-subtitle>
       </div>
       @if (!record().archivadoEn) {
-        <button mat-flat-button type="button" (click)="showActivityForm.set(!showActivityForm())">
+        <button mat-flat-button type="button" (click)="toggleActivityForm()">
           {{ showActivityForm() ? 'Cancelar' : 'Registrar contacto' }}
         </button>
       }
@@ -30,10 +30,24 @@
             </mat-form-field>
             <mat-form-field appearance="outline" class="wide">
               <mat-label>Resumen</mat-label>
-              <textarea matInput rows="3" maxlength="4000" formControlName="resumen"></textarea>
+              <textarea
+                matInput
+                rows="3"
+                maxlength="4000"
+                formControlName="resumen"
+                data-contact-summary
+              ></textarea>
               @if (activityForm.controls.resumen.touched && activityForm.controls.resumen.invalid) {
                 <mat-error>Escribe un resumen.</mat-error>
               }
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Nivel de interés</mat-label>
+              <mat-select formControlName="nivelInteres">
+                @for (interest of interests; track interest.value) {
+                  <mat-option [value]="interest.value">{{ interest.label }}</mat-option>
+                }
+              </mat-select>
             </mat-form-field>
             <mat-form-field appearance="outline" class="wide">
               <mat-label>Resultado (opcional)</mat-label>
@@ -135,7 +149,7 @@
         <mat-card-subtitle>Próximas acciones y tareas completadas</mat-card-subtitle>
       </div>
       @if (!record().archivadoEn) {
-        <button mat-flat-button type="button" (click)="showTaskForm.set(!showTaskForm())">
+        <button mat-flat-button type="button" (click)="toggleTaskForm()">
           {{ showTaskForm() ? 'Cancelar' : 'Nueva tarea' }}
         </button>
       }
@@ -284,9 +298,7 @@
                     </div>
                   </div>
                   <div class="inline-actions">
-                    <button mat-button type="button" (click)="editingTaskId.set(null)">
-                      Cancelar
-                    </button>
+                    <button mat-button type="button" (click)="cancelEdit()">Cancelar</button>
                     <button mat-flat-button type="submit" [disabled]="busy()">
                       Guardar cambios
                     </button>
@@ -365,9 +377,7 @@
                     </div>
                   }
                   <div class="inline-actions">
-                    <button mat-button type="button" (click)="completingTaskId.set(null)">
-                      Cancelar
-                    </button>
+                    <button mat-button type="button" (click)="cancelComplete()">Cancelar</button>
                     <button mat-flat-button type="submit" [disabled]="busy()">Confirmar</button>
                   </div>
                 </form>

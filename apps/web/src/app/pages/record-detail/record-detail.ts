@@ -1,5 +1,13 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, effect, inject, signal, untracked } from '@angular/core';
+import {
+  Component,
+  effect,
+  HostListener,
+  inject,
+  signal,
+  untracked,
+  viewChild,
+} from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import {
   AbstractControl,
@@ -63,6 +71,11 @@ export class RecordDetail {
     this.route.paramMap.pipe(map((params) => params.get('recordId'))),
     { initialValue: this.route.snapshot.paramMap.get('recordId') },
   );
+  readonly contactRequested = toSignal(
+    this.route.queryParamMap.pipe(map((params) => params.get('action') === 'contact')),
+    { initialValue: this.route.snapshot.queryParamMap.get('action') === 'contact' },
+  );
+  private readonly followUpPanel = viewChild(FollowUpPanel);
   private request?: Subscription;
   private loadGeneration = 0;
 
@@ -231,6 +244,20 @@ export class RecordDetail {
     if (!id) return;
     this.message.set(message);
     this.load(id, true);
+  }
+
+  hasUnsavedChanges(): boolean {
+    return (
+      (this.form.dirty && !this.saving()) || (this.followUpPanel()?.hasUnsavedChanges() ?? false)
+    );
+  }
+
+  @HostListener('window:beforeunload', ['$event'])
+  confirmBrowserExit(event: BeforeUnloadEvent): void {
+    if (this.hasUnsavedChanges()) {
+      event.preventDefault();
+      event.returnValue = '';
+    }
   }
 
   stage(value: CommercialStage): string {

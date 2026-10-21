@@ -273,6 +273,12 @@ export class RecordsService {
             },
           });
         }
+        if (dto.nivelInteres) {
+          await tx.registroComercial.update({
+            where: { id_proyectoId: { id: recordId, proyectoId: projectId } },
+            data: { nivelInteres: dto.nivelInteres },
+          });
+        }
         await tx.operacionRegistro.create({
           data: {
             solicitudId: dto.solicitudId,

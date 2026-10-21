@@ -136,6 +136,9 @@ describeDatabase('Acceso privado y aislamiento (e2e)', () => {
     await request(app.getHttpServer())
       .get(`/api/projects/${projectA}/records`)
       .expect(401);
+    await request(app.getHttpServer())
+      .get(`/api/projects/${projectA}/follow-ups`)
+      .expect(401);
   });
 
   it('inicia sesión con cookie HttpOnly y crea el contexto autenticado', async () => {
@@ -160,6 +163,7 @@ describeDatabase('Acceso privado y aislamiento (e2e)', () => {
   it('no permite acceder a proyectos de otro usuario', async () => {
     await agent.get(`/api/projects/${projectB}/records`).expect(404);
     await agent.get(`/api/projects/${projectB}/today`).expect(404);
+    await agent.get(`/api/projects/${projectB}/follow-ups`).expect(404);
   });
 
   it('crea, lista y edita únicamente proyectos propios', async () => {
@@ -411,6 +415,7 @@ describeDatabase('Acceso privado y aislamiento (e2e)', () => {
       ocurridaEn: '2026-10-21T19:30:00.000Z',
       resumen: 'Se presentó el producto.',
       resultado: 'Solicitó una propuesta.',
+      nivelInteres: 'ALTO',
       proximaAccion: {
         descripcion: 'Enviar propuesta',
         tipo: 'ENVIAR_PROPUESTA',
@@ -568,6 +573,7 @@ describeDatabase('Acceso privado y aislamiento (e2e)', () => {
     expect(completed.fechaVencimiento).toBe('2026-11-30');
     expect(completed.resultado).toContain('cierre mensual');
     expect(detail.body.tareasSeguimiento).toHaveLength(3);
+    expect(detail.body.nivelInteres).toBe('ALTO');
 
     await agent
       .post(`/api/projects/${projectA}/records/${recordId}/tasks`)
@@ -786,6 +792,46 @@ describeDatabase('Acceso privado y aislamiento (e2e)', () => {
       .get(`/api/projects/${project.id}/records?archived=true`)
       .expect(200);
     expect(archivedList.body.items[0].semaforo).toBe('GRIS');
+
+    const pendingFollowUps = await agent
+      .get(`/api/projects/${project.id}/follow-ups?estado=PENDIENTE`)
+      .expect(200);
+    expect(pendingFollowUps.body.total).toBe(5);
+    expect(
+      pendingFollowUps.body.items.map(
+        (task: { registro: { id: string } }) => task.registro.id,
+      ),
+    ).not.toContain(discarded.id);
+    expect(
+      pendingFollowUps.body.items.map(
+        (task: { registro: { id: string } }) => task.registro.id,
+      ),
+    ).not.toContain(archived.id);
+
+    const dateRange = await agent
+      .get(
+        `/api/projects/${project.id}/follow-ups?estado=PENDIENTE&desde=${today}&hasta=${thirdDay}`,
+      )
+      .expect(200);
+    expect(
+      dateRange.body.items.map(
+        (task: { registro: { id: string } }) => task.registro.id,
+      ),
+    ).toEqual([dueToday.id, client.id]);
+
+    const completedFollowUps = await agent
+      .get(`/api/projects/${project.id}/follow-ups?estado=COMPLETADA`)
+      .expect(200);
+    expect(completedFollowUps.body.total).toBe(1);
+    expect(completedFollowUps.body.items[0].registro.id).toBe(withoutNext.id);
+    await agent
+      .get(
+        `/api/projects/${project.id}/follow-ups?desde=${fourthDay}&hasta=${today}`,
+      )
+      .expect(400);
+    await agent
+      .get(`/api/projects/${project.id}/follow-ups?desde=2026-02-31`)
+      .expect(400);
 
     await agent
       .patch(

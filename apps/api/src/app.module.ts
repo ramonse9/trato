@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module.js';
 import { AuthThrottlerGuard } from './auth/auth-throttler.guard.js';
 import { CsrfGuard } from './auth/csrf.guard.js';
 import { SessionGuard } from './auth/session.guard.js';
+import { FollowUpsModule } from './follow-ups/follow-ups.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { ProjectsModule } from './projects/projects.module.js';
 import { RecordsModule } from './records/records.module.js';
@@ -20,6 +21,7 @@ import { TodayModule } from './today/today.module.js';
     ProjectsModule,
     RecordsModule,
     TodayModule,
+    FollowUpsModule,
   ],
   controllers: [AppController],
   providers: [

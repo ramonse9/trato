@@ -214,7 +214,11 @@
     </mat-card>
   </div>
 
-  <app-follow-up-panel [record]="current" (changed)="reloadAfterFollowUp($event)" />
+  <app-follow-up-panel
+    [record]="current"
+    [openContact]="contactRequested()"
+    (changed)="reloadAfterFollowUp($event)"
+  />
 
   @if (!current.archivadoEn) {
     <section class="archive-zone" aria-labelledby="archive-record-title">

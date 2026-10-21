@@ -86,13 +86,7 @@ th {
   text-transform: uppercase;
 }
 
-tbody tr {
-  cursor: pointer;
-}
-
-tbody tr:hover,
-tbody tr:focus-visible {
-  outline: none;
+tbody tr:hover {
   background: #f0f6f2;
 }
 
@@ -118,10 +112,19 @@ td small,
   gap: 0.5rem;
 }
 
-.external-link {
+.external-link,
+.contact-link,
+.record-name {
   color: #245f48;
   font-size: 0.82rem;
   font-weight: 700;
+}
+
+.record-name:focus-visible,
+.external-link:focus-visible,
+.contact-link:focus-visible {
+  outline: 3px solid #d0932f;
+  outline-offset: 3px;
 }
 
 .stage {
@@ -273,7 +276,7 @@ td small,
 
   .card-actions {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
     border-top: 1px solid rgba(23, 55, 45, 0.1);
   }
 
@@ -293,6 +296,10 @@ td small,
 
   .card-actions a + a {
     border-left: 1px solid rgba(23, 55, 45, 0.1);
+  }
+
+  .card-actions .contact-link {
+    background: #e6f0ea;
   }
 
   .pagination {

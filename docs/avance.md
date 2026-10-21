@@ -10,6 +10,7 @@
 - [x] Etapa 6 — Seguimiento comercial
 - [x] Etapa 7 — Pendientes y semáforo
 - [x] Etapa 8 — Enlaces y pulido móvil
+- [x] Etapa 9 — Uso diario desde el celular
 
 ## Etapa 1 — Base técnica
 
@@ -64,5 +65,13 @@ Accesos seguros a WhatsApp y Google Maps desde la cartera responsive y la ficha.
 La ficha permite capturar latitud y longitud juntas y valida rangos en frontend, backend y PostgreSQL. Si falta toda ubicación se oculta la acción; si solo existe dirección se advierte que un dato incompleto puede ser impreciso. Los enlaces usan HTTPS fijo, pestaña nueva, texto accesible y protección `noopener noreferrer`.
 
 No se agregó una migración ni se integraron APIs, geocodificación, claves o facturación. Verificado con pruebas unitarias de teléfonos internacionales, direcciones con acentos y caracteres especiales, coordenadas negativas y ausencia de ubicación; la suite e2e comprueba E.164, persistencia manual, rangos y pares de coordenadas.
+
+## Etapa 9 — Uso diario desde el celular
+
+Flujo directo “Registrar contacto” desde cada tarjeta activa de la cartera. La ficha abre y enfoca un formulario breve que permite registrar lo ocurrido, actualizar el interés y programar la siguiente acción en un único envío transaccional e idempotente. Los formularios mantienen la información tras errores recuperables, bloquean dobles envíos y advierten antes de abandonar cambios sin guardar.
+
+La vista Seguimientos ya es funcional y se limita en backend al proyecto seleccionado. Filtra por pendientes, completados o todos y por rango de vencimientos, conserva los filtros ante errores y ofrece estados vacíos accionables. Archivados y descartados no aparecen en esta agenda operativa.
+
+Se revisó el recorrido en navegador con un viewport móvil: navegación inferior, tarjetas, foco directo, etiquetas, texto del semáforo y controles táctiles. No se agregó modo sin conexión, notificaciones ni automatizaciones. Esta etapa no requiere migración. Verificado con lint, compilación estricta, 19 pruebas unitarias y 14 pruebas e2e sobre PostgreSQL limpio, incluidas autorización, aislamiento, rangos de fecha, tareas completadas y exclusiones.
 
 Cada etapa deberá agregar sus migraciones, pruebas y notas de ejecución sin adelantar funciones de etapas posteriores.

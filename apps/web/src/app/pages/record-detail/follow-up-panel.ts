@@ -1,4 +1,14 @@
-import { Component, computed, inject, input, output, signal } from '@angular/core';
+import {
+  Component,
+  computed,
+  effect,
+  ElementRef,
+  inject,
+  input,
+  output,
+  signal,
+  untracked,
+} from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -16,6 +26,8 @@ import {
   FollowUpTask,
   TaskInput,
   TaskType,
+  INTEREST_LEVELS,
+  InterestLevel,
   taskTypeLabel,
 } from '../../models/commercial-record';
 import {
@@ -50,8 +62,10 @@ interface NextActionPreset {
 export class FollowUpPanel {
   private readonly api = inject(RecordsService);
   private readonly context = inject(ProjectContextService);
+  private readonly host = inject(ElementRef<HTMLElement>);
 
   readonly record = input.required<CommercialRecordDetail>();
+  readonly openContact = input(false);
   readonly changed = output<string>();
   readonly busy = signal(false);
   readonly errorMessage = signal<string | null>(null);
@@ -75,6 +89,7 @@ export class FollowUpPanel {
     { value: 'ENVIAR_PROPUESTA', label: 'Enviar propuesta' },
     { value: 'OTRO', label: 'Otra acción' },
   ];
+  readonly interests = INTEREST_LEVELS;
   readonly presets: ReadonlyArray<NextActionPreset> = [
     {
       value: 'PEDIR_RESPUESTA',
@@ -139,6 +154,7 @@ export class FollowUpPanel {
       nonNullable: true,
       validators: [Validators.maxLength(4000)],
     }),
+    nivelInteres: new FormControl<InterestLevel>('SIN_EVALUAR', { nonNullable: true }),
     incluirProxima: new FormControl(false, { nonNullable: true }),
   });
   readonly activityNextForm = this.taskForm();
@@ -157,6 +173,70 @@ export class FollowUpPanel {
   private taskRequestId = crypto.randomUUID();
   private editRequestId = crypto.randomUUID();
   private completeRequestId = crypto.randomUUID();
+
+  constructor() {
+    effect(() => {
+      const current = this.record();
+      if (!this.showActivityForm()) {
+        this.activityForm.controls.nivelInteres.reset(current.nivelInteres);
+      }
+    });
+    effect(() => {
+      if (this.openContact()) untracked(() => this.openActivityForm());
+    });
+  }
+
+  openActivityForm(): void {
+    if (!this.showActivityForm()) {
+      this.activityForm.controls.nivelInteres.reset(this.record().nivelInteres);
+      this.showActivityForm.set(true);
+    }
+    setTimeout(() => {
+      this.host.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const summary = this.host.nativeElement.querySelector(
+        '[data-contact-summary]',
+      ) as HTMLElement | null;
+      summary?.focus();
+    });
+  }
+
+  toggleActivityForm(): void {
+    if (this.showActivityForm()) this.resetActivityForm();
+    else this.openActivityForm();
+  }
+
+  toggleTaskForm(): void {
+    if (this.showTaskForm()) {
+      this.newTaskForm.reset(this.emptyTask());
+      this.showTaskForm.set(false);
+    } else {
+      this.showTaskForm.set(true);
+    }
+  }
+
+  cancelEdit(): void {
+    this.editingTaskId.set(null);
+    this.editTaskForm.reset(this.emptyTask());
+  }
+
+  cancelComplete(): void {
+    this.completingTaskId.set(null);
+    this.completeForm.reset({ resultado: '', programarOtra: false });
+    this.completionNextForm.reset(this.emptyTask());
+  }
+
+  hasUnsavedChanges(): boolean {
+    return (
+      (this.showActivityForm() &&
+        (this.activityForm.dirty ||
+          (this.activityForm.controls.incluirProxima.value && this.activityNextForm.dirty))) ||
+      (this.showTaskForm() && this.newTaskForm.dirty) ||
+      (Boolean(this.editingTaskId()) && this.editTaskForm.dirty) ||
+      (Boolean(this.completingTaskId()) &&
+        (this.completeForm.dirty ||
+          (this.completeForm.controls.programarOtra.value && this.completionNextForm.dirty)))
+    );
+  }
 
   async createActivity(): Promise<void> {
     const current = this.record();
@@ -181,12 +261,14 @@ export class FollowUpPanel {
           ocurridaEn: mazatlanDateTimeToIso(values.ocurridaEn),
           resumen: values.resumen,
           resultado: values.resultado || null,
+          nivelInteres: values.nivelInteres,
           proximaAccion: values.incluirProxima ? this.taskValue(this.activityNextForm) : undefined,
         }),
       );
       if (!this.isCurrent(scope.projectId, current.id, scope.revision)) return;
       this.activityRequestId = crypto.randomUUID();
       this.resetActivityForm();
+      this.busy.set(false);
       this.changed.emit('Contacto y seguimiento guardados.');
     } catch {
       if (this.isCurrent(scope.projectId, current.id, scope.revision)) {
@@ -217,6 +299,7 @@ export class FollowUpPanel {
       this.taskRequestId = crypto.randomUUID();
       this.newTaskForm.reset(this.emptyTask());
       this.showTaskForm.set(false);
+      this.busy.set(false);
       this.changed.emit('Seguimiento creado.');
     } catch {
       if (this.isCurrent(scope.projectId, current.id, scope.revision)) {
@@ -260,6 +343,7 @@ export class FollowUpPanel {
       if (!this.isCurrent(scope.projectId, current.id, scope.revision)) return;
       this.editingTaskId.set(null);
       this.editRequestId = crypto.randomUUID();
+      this.busy.set(false);
       this.changed.emit('Seguimiento actualizado.');
     } catch {
       if (this.isCurrent(scope.projectId, current.id, scope.revision)) {
@@ -303,6 +387,7 @@ export class FollowUpPanel {
       if (!this.isCurrent(scope.projectId, current.id, scope.revision)) return;
       this.completingTaskId.set(null);
       this.completeRequestId = crypto.randomUUID();
+      this.busy.set(false);
       this.changed.emit('Seguimiento completado.');
     } catch {
       if (this.isCurrent(scope.projectId, current.id, scope.revision)) {
@@ -391,6 +476,7 @@ export class FollowUpPanel {
       ocurridaEn: dateTimeNow(),
       resumen: '',
       resultado: '',
+      nivelInteres: this.record().nivelInteres,
       incluirProxima: false,
     });
     this.activityNextForm.reset(this.emptyTask());

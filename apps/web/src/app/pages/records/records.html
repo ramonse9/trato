@@ -49,7 +49,7 @@
 
   <div class="filter-actions">
     <button mat-flat-button type="submit">Aplicar</button>
-    <button mat-button type="button" (click)="clearFilters()">Limpiar</button>
+    <button mat-stroked-button type="button" (click)="clearFilters()">Limpiar filtros</button>
   </div>
 </form>
 
@@ -85,9 +85,13 @@
       </thead>
       <tbody>
         @for (record of records(); track record.id) {
-          <tr tabindex="0" (click)="open(record.id)" (keydown.enter)="open(record.id)">
+          <tr>
             <td>
-              <strong>{{ record.nombreNegocio }}</strong>
+              <a
+                class="record-name"
+                [routerLink]="['/p', context.activeProject()?.id, 'records', record.id]"
+                ><strong>{{ record.nombreNegocio }}</strong></a
+              >
               <span>{{ record.nombreEncargado || 'Encargado por identificar' }}</span>
               @if (record.telefono) {
                 <small>{{ record.telefono }}</small>
@@ -118,6 +122,14 @@
             </td>
             <td>
               <div class="row-actions">
+                @if (!archived()) {
+                  <a
+                    class="contact-link"
+                    [routerLink]="['/p', context.activeProject()?.id, 'records', record.id]"
+                    [queryParams]="{ action: 'contact' }"
+                    >Registrar contacto</a
+                  >
+                }
                 @if (whatsappLink(record.telefono); as whatsapp) {
                   <a
                     class="external-link"
@@ -140,7 +152,7 @@
                     >Mapa</a
                   >
                 }
-                @if (!whatsappLink(record.telefono) && !mapsLink(record)) {
+                @if (archived() && !whatsappLink(record.telefono) && !mapsLink(record)) {
                   <span class="muted">Sin accesos</span>
                 }
               </div>
@@ -193,6 +205,14 @@
           </span>
         </a>
         <div class="card-actions">
+          @if (!archived()) {
+            <a
+              class="contact-link"
+              [routerLink]="['/p', context.activeProject()?.id, 'records', record.id]"
+              [queryParams]="{ action: 'contact' }"
+              >Registrar contacto</a
+            >
+          }
           @if (whatsappLink(record.telefono); as whatsapp) {
             <a [href]="whatsapp" target="_blank" rel="noopener noreferrer">Abrir WhatsApp</a>
           }

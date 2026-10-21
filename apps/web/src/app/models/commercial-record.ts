@@ -103,6 +103,7 @@ export interface CreateActivityInput {
   resumen: string;
   resultado?: string | null;
   proximaAccion?: TaskInput;
+  nivelInteres?: InterestLevel;
 }
 
 export interface CreateActivityResponse {

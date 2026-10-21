@@ -1,0 +1,88 @@
+<header class="page-header">
+  <div>
+    <p class="eyebrow">Actividad del proyecto</p>
+    <h1>Seguimientos</h1>
+    <p>
+      Tareas de <strong>{{ context.activeProject()?.nombre }}</strong> sin mezclar otras carteras.
+    </p>
+  </div>
+</header>
+
+<form class="filters" [formGroup]="filters" (ngSubmit)="applyFilters()">
+  <mat-form-field appearance="outline">
+    <mat-label>Estado</mat-label>
+    <mat-select formControlName="estado">
+      <mat-option value="">Todos</mat-option>
+      <mat-option value="PENDIENTE">Pendientes</mat-option>
+      <mat-option value="COMPLETADA">Completados</mat-option>
+    </mat-select>
+  </mat-form-field>
+  <mat-form-field appearance="outline">
+    <mat-label>Desde</mat-label>
+    <input matInput type="date" formControlName="desde" />
+  </mat-form-field>
+  <mat-form-field appearance="outline">
+    <mat-label>Hasta</mat-label>
+    <input matInput type="date" formControlName="hasta" />
+  </mat-form-field>
+  <div class="filter-actions">
+    <button mat-flat-button type="submit">Aplicar filtros</button>
+    <button mat-stroked-button type="button" (click)="clearFilters()">Limpiar filtros</button>
+  </div>
+</form>
+
+@if (filterError()) {
+  <p class="filter-error" role="alert">{{ filterError() }}</p>
+}
+
+@if (loading()) {
+  <section class="state" aria-live="polite">Cargando seguimientos…</section>
+} @else if (loadError()) {
+  <section class="state error" role="alert">
+    <p>No fue posible cargar los seguimientos. Tus filtros se conservaron.</p>
+    <button mat-stroked-button type="button" (click)="retry()">Reintentar</button>
+  </section>
+} @else if (items().length === 0) {
+  <section class="state empty">
+    <strong>No hay seguimientos que coincidan.</strong>
+    <p>Prueba otro estado o rango de fechas, o limpia los filtros.</p>
+    <button mat-stroked-button type="button" (click)="clearFilters()">Limpiar filtros</button>
+  </section>
+} @else {
+  <p class="result-count" aria-live="polite">{{ items().length }} seguimientos encontrados</p>
+  <ul class="follow-up-list">
+    @for (item of items(); track item.id) {
+      <li>
+        <div class="item-heading">
+          <div>
+            <span class="status-label" [class.completed]="item.estado === 'COMPLETADA'">
+              {{ item.estado === 'PENDIENTE' ? 'Pendiente' : 'Completado' }}
+            </span>
+            <h2>{{ item.descripcion }}</h2>
+            <p>{{ taskType(item) }} · vence {{ calendarDate(item.fechaVencimiento) }}</p>
+          </div>
+          @if (item.estado === 'PENDIENTE') {
+            <app-follow-up-status [status]="item.semaforo" />
+          }
+        </div>
+        <div class="record-summary">
+          <div>
+            <strong>{{ item.registro.nombreNegocio }}</strong>
+            <span>{{ item.registro.nombreEncargado || 'Encargado por identificar' }}</span>
+          </div>
+          <a
+            mat-stroked-button
+            [routerLink]="['/p', context.activeProject()?.id, 'records', item.registro.id]"
+            >Abrir ficha</a
+          >
+        </div>
+        @if (item.completadaEn) {
+          <p class="completion">Completado el {{ completionDate(item.completadaEn) }}</p>
+        }
+        @if (item.resultado) {
+          <p class="result"><strong>Resultado:</strong> {{ item.resultado }}</p>
+        }
+      </li>
+    }
+  </ul>
+}

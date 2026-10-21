@@ -46,15 +46,16 @@ export class Shell implements OnInit {
   }
 
   async changeProject(projectId: string): Promise<void> {
-    if (!this.context.selectProject(projectId)) return;
+    if (!this.context.projects().some((project) => project.id === projectId)) return;
     const currentSection = this.currentSection();
     await this.router.navigate(['/p', projectId, currentSection]);
   }
 
   async logout(): Promise<void> {
+    const leftWorkspace = await this.router.navigate(['/login']);
+    if (!leftWorkspace) return;
     await this.auth.logout();
     this.context.reset();
-    await this.router.navigate(['/login']);
   }
 
   private currentSection(): string {

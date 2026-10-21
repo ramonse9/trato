@@ -10,7 +10,11 @@ import {
   MinLength,
   ValidateNested,
 } from 'class-validator';
-import { TipoActividad, TipoTarea } from '../../generated/prisma/client.js';
+import {
+  NivelInteres,
+  TipoActividad,
+  TipoTarea,
+} from '../../generated/prisma/client.js';
 
 const CALENDAR_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -65,6 +69,10 @@ export class CreateActivityDto {
   @ValidateNested()
   @Type(() => CreateTaskInputDto)
   proximaAccion?: CreateTaskInputDto;
+
+  @IsOptional()
+  @IsEnum(NivelInteres)
+  nivelInteres?: NivelInteres;
 }
 
 export class CreateTaskDto extends CreateTaskInputDto {

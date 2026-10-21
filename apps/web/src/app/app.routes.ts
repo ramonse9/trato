@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/auth.guard';
 import { projectGuard, workspaceEntryGuard } from './core/project.guard';
+import { unsavedChangesGuard } from './core/unsaved-changes.guard';
 
 export const routes: Routes = [
   {
@@ -39,12 +40,14 @@ export const routes: Routes = [
             path: 'records/new',
             loadComponent: () =>
               import('./pages/record-create/record-create').then((module) => module.RecordCreate),
+            canDeactivate: [unsavedChangesGuard],
             title: 'Nuevo prospecto | Trato',
           },
           {
             path: 'records/:recordId',
             loadComponent: () =>
               import('./pages/record-detail/record-detail').then((module) => module.RecordDetail),
+            canDeactivate: [unsavedChangesGuard],
             title: 'Ficha comercial | Trato',
           },
           {
@@ -55,16 +58,7 @@ export const routes: Routes = [
           {
             path: 'follow-ups',
             loadComponent: () =>
-              import('./pages/project-section/project-section').then(
-                (module) => module.ProjectSection,
-              ),
-            data: {
-              eyebrow: 'Actividad del proyecto',
-              title: 'Seguimientos',
-              emptyTitle: 'Historial y próximas acciones',
-              emptyDescription:
-                'Las llamadas, visitas y tareas se mostrarán aquí sin mezclar otros proyectos.',
-            },
+              import('./pages/follow-ups/follow-ups').then((module) => module.FollowUps),
             title: 'Seguimientos | Trato',
           },
           {
