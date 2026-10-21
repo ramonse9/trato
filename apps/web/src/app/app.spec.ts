@@ -1,12 +1,13 @@
 import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { App } from './app';
 
 describe('App', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [App],
-    })
-      .compileComponents();
+      providers: [provideRouter([])],
+    }).compileComponents();
   });
 
   it('should create the app', () => {
@@ -15,11 +16,10 @@ describe('App', () => {
     expect(app).toBeTruthy();
   });
 
-  it('muestra la pantalla inicial en español', async () => {
+  it('contiene el punto de salida del enrutador', async () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Tus oportunidades');
-    expect(compiled.textContent).toContain('Espacio privado');
+    expect(compiled.querySelector('router-outlet')).toBeTruthy();
   });
 });

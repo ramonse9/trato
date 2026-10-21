@@ -1,0 +1,37 @@
+<mat-toolbar class="topbar">
+  <span class="brand">Trato</span>
+  <span class="spacer"></span>
+  <span class="user-name">{{ auth.user()?.nombre }}</span>
+  <button mat-button type="button" (click)="logout()">Salir</button>
+</mat-toolbar>
+
+<main>
+  <p class="eyebrow">Espacio privado</p>
+  <h1>Proyectos comerciales</h1>
+  <p class="intro">Cada proyecto mantiene su cartera y seguimiento completamente separados.</p>
+
+  @if (loading()) {
+    <p class="status" aria-live="polite">Cargando proyectos…</p>
+  } @else if (loadError()) {
+    <p class="status error" role="alert">No fue posible cargar tus proyectos.</p>
+  } @else if (projects().length === 0) {
+    <mat-card appearance="outlined" class="empty">
+      <mat-card-content>Aún no hay proyectos comerciales.</mat-card-content>
+    </mat-card>
+  } @else {
+    <section class="project-grid" aria-label="Tus proyectos">
+      @for (project of projects(); track project.id) {
+        <mat-card appearance="outlined">
+          <mat-card-header>
+            <mat-card-title>{{ project.nombre }}</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            {{ project.descripcion || 'Sin descripción.' }}
+          </mat-card-content>
+        </mat-card>
+      }
+    </section>
+  }
+</main>
+
+<footer>Zona horaria: America/Mazatlan</footer>

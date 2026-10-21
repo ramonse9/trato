@@ -25,6 +25,7 @@
     "db:migrate": "npm run db:migrate --workspace @trato/api",
     "db:deploy": "npm run db:deploy --workspace @trato/api",
     "db:seed": "npm run db:seed --workspace @trato/api",
+    "user:create": "npm run user:create --workspace @trato/api",
     "prisma:generate": "npm run prisma:generate --workspace @trato/api",
     "prisma:validate": "npm run prisma:validate --workspace @trato/api"
   }

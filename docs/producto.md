@@ -64,6 +64,19 @@ El teléfono, cuando existe, debe usar formato E.164 con código de país. Las c
 
 El seed usa información ficticia, no incluye contraseñas ni tokens, y se detiene explícitamente cuando `NODE_ENV=production`.
 
+## Acceso y seguridad
+
+- No existe registro público. El usuario inicial se crea o actualiza desde una terminal interactiva mediante `npm run user:create`; la contraseña no se recibe por argumentos ni se guarda en archivos.
+- Las contraseñas se derivan con `scrypt` (`N=2^17`, `r=8`, `p=1`), sal aleatoria y comparación de tiempo constante. La base nunca guarda la contraseña original.
+- La autenticación usa sesiones opacas en PostgreSQL. El navegador recibe un token aleatorio en una cookie `HttpOnly`, `SameSite=Lax`, con `Secure` y prefijo `__Host-` en producción; la base conserva únicamente el SHA-256 de ese token.
+- Las sesiones duran siete días de forma predeterminada, configurable entre 1 y 30 mediante `SESSION_TTL_DAYS`. Cerrar sesión elimina la sesión en la base y borra la cookie.
+- Las mutaciones exigen el origen exacto configurado en `WEB_ORIGIN`. Una mutación autenticada exige además `X-CSRF-Token`, un valor aleatorio asociado a la sesión. `SameSite` es una defensa adicional, no la única protección CSRF.
+- El inicio de sesión se limita a cinco intentos por combinación de correo normalizado e IP cada quince minutos. La API mantiene además un límite general de cien solicitudes por minuto.
+- La validación elimina campos no declarados y los errores inesperados se convierten en mensajes genéricos. Los fallos de credenciales no revelan si el correo existe.
+- Angular protege la navegación y restaura la sesión, pero la autorización efectiva siempre ocurre en NestJS.
+
+Las rutas de cartera llevan contexto explícito: `/api/projects/:projectId/records/:recordId`. Para cada consulta o cambio, la API comprueba en una sola cadena de pertenencia el usuario, proyecto y registro; actividades y tareas comprueban también sus propios identificadores. Una combinación ajena o cruzada responde como recurso no encontrado. Las llaves foráneas compuestas mantienen además la misma regla dentro de PostgreSQL.
+
 ## Principios de entrega
 
 - Cada etapa debe terminar con una parte funcional y verificable.

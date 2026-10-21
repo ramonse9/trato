@@ -1,0 +1,56 @@
+<main class="login-shell">
+  <section class="welcome" aria-labelledby="login-title">
+    <p class="brand">Trato</p>
+    <p class="eyebrow">Seguimiento comercial privado</p>
+    <h1 id="login-title">Retoma cada conversación donde la dejaste.</h1>
+    <p class="intro">Entra para revisar tus proyectos y mantener claro el siguiente paso.</p>
+  </section>
+
+  <mat-card appearance="outlined">
+    <mat-card-header>
+      <mat-card-title>Iniciar sesión</mat-card-title>
+      <mat-card-subtitle>Usa las credenciales creadas por el administrador.</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <form (ngSubmit)="submit()" [formGroup]="form">
+        <mat-form-field appearance="outline">
+          <mat-label>Correo</mat-label>
+          <input matInput autocomplete="username" formControlName="correo" type="email" />
+          @if (form.controls.correo.touched && form.controls.correo.invalid) {
+            <mat-error>Escribe un correo válido.</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Contraseña</mat-label>
+          <input
+            matInput
+            autocomplete="current-password"
+            formControlName="password"
+            [type]="hidePassword() ? 'password' : 'text'"
+          />
+          <button
+            mat-button
+            matSuffix
+            type="button"
+            [attr.aria-label]="hidePassword() ? 'Mostrar contraseña' : 'Ocultar contraseña'"
+            (click)="hidePassword.set(!hidePassword())"
+          >
+            {{ hidePassword() ? 'Mostrar' : 'Ocultar' }}
+          </button>
+          @if (form.controls.password.touched && form.controls.password.invalid) {
+            <mat-error>La contraseña debe tener al menos 12 caracteres.</mat-error>
+          }
+        </mat-form-field>
+
+        @if (errorMessage()) {
+          <p class="form-error" role="alert">{{ errorMessage() }}</p>
+        }
+
+        <button mat-flat-button type="submit" [disabled]="submitting()">
+          {{ submitting() ? 'Entrando…' : 'Entrar' }}
+        </button>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</main>

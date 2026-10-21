@@ -4,7 +4,7 @@
 
 - [x] Etapa 1 — Base técnica
 - [x] Etapa 2 — Modelo de datos y reglas comerciales
-- [ ] Etapa 3 — Acceso privado
+- [x] Etapa 3 — Acceso privado
 - [ ] Etapa 4 — Proyectos comerciales
 - [ ] Etapa 5 — Clientes y prospectos
 - [ ] Etapa 6 — Seguimiento comercial
@@ -25,7 +25,9 @@ Verificado en una base PostgreSQL limpia: la migración y el seed se aplican cor
 
 ## Etapa 3 — Acceso privado
 
-Inicio y cierre de sesión para un usuario creado de forma administrativa. Contraseñas con hash, sesión protegida y rutas privadas. Sin registro público.
+Inicio y cierre de sesión para un usuario creado de forma administrativa, sin registro público. Incluye hash `scrypt`, sesiones opacas persistidas, cookie `HttpOnly` segura en producción, protección CSRF por origen y token, límites de intentos, validación global, errores seguros, guard de Angular y autorización efectiva en NestJS.
+
+Las rutas de proyectos, registros, actividades y tareas validan la cadena completa de pertenencia al usuario autenticado. Verificado con ocho pruebas e2e sobre una base PostgreSQL limpia: acceso anónimo denegado, cookie de sesión, proyecto de otro usuario invisible, consulta y modificación cruzadas rechazadas, actividades y tareas sin mezcla, CSRF obligatorio, límite de intentos y cierre de sesión efectivo.
 
 ## Etapa 4 — Proyectos comerciales
 

@@ -1,0 +1,104 @@
+:host {
+  display: block;
+  min-height: 100dvh;
+  background:
+    radial-gradient(circle at 85% 10%, rgba(33, 96, 73, 0.14), transparent 28rem), #f7f5ef;
+  color: #17372d;
+}
+
+.topbar {
+  padding-inline: clamp(1rem, 5vw, 4rem);
+  background: transparent;
+  color: #17372d;
+}
+
+.brand {
+  font-size: 1.25rem;
+  font-weight: 780;
+  letter-spacing: -0.04em;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.user-name {
+  overflow: hidden;
+  max-width: 12rem;
+  margin-right: 0.5rem;
+  color: #527066;
+  font-size: 0.85rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+main,
+footer {
+  width: min(70rem, calc(100% - 2rem));
+  margin-inline: auto;
+}
+
+main {
+  padding: clamp(3rem, 8vw, 7rem) 0 4rem;
+}
+
+.eyebrow {
+  margin: 0 0 0.6rem;
+  color: #527066;
+  font-size: 0.8rem;
+  font-weight: 750;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(2.5rem, 7vw, 5rem);
+  font-weight: 760;
+  letter-spacing: -0.055em;
+  line-height: 1;
+}
+
+.intro,
+.status {
+  color: #567067;
+  line-height: 1.6;
+}
+
+.project-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(17rem, 100%), 1fr));
+  gap: 1rem;
+  margin-top: 3rem;
+}
+
+mat-card {
+  background: rgba(255, 255, 255, 0.68);
+}
+
+mat-card-content {
+  padding-top: 1rem;
+  color: #567067;
+}
+
+.empty,
+.status {
+  margin-top: 3rem;
+}
+
+.error {
+  color: #a03d32;
+}
+
+footer {
+  padding: 1.5rem 0 2rem;
+  border-top: 1px solid rgba(23, 55, 45, 0.16);
+  color: #687d76;
+  font-size: 0.8rem;
+}
+
+@media (max-width: 600px) {
+  .user-name {
+    display: none;
+  }
+}
