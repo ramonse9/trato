@@ -10,6 +10,8 @@ export type CommercialStage =
   | 'DESCARTADO';
 
 export type InterestLevel = 'SIN_EVALUAR' | 'BAJO' | 'MEDIO' | 'ALTO';
+export type ActivityType = 'LLAMADA' | 'WHATSAPP' | 'VISITA' | 'DEMO' | 'NOTA';
+export type TaskType = 'LLAMADA' | 'WHATSAPP' | 'VISITA' | 'DEMO' | 'ENVIAR_PROPUESTA' | 'OTRO';
 
 export const COMMERCIAL_STAGES: ReadonlyArray<{
   value: CommercialStage;
@@ -38,7 +40,7 @@ export const INTEREST_LEVELS: ReadonlyArray<{
 
 export interface LastContact {
   id: string;
-  tipo: 'LLAMADA' | 'WHATSAPP' | 'VISITA' | 'DEMO' | 'NOTA';
+  tipo: ActivityType;
   ocurridaEn: string;
 }
 
@@ -70,15 +72,61 @@ export interface CommercialRecordSummary {
 
 export interface RecordActivity extends LastContact {
   detalle: string;
+  resultado: string | null;
 }
 
 export interface FollowUpTask {
   id: string;
   descripcion: string;
-  tipo: string;
+  tipo: TaskType;
   fechaVencimiento: string;
   estado: 'PENDIENTE' | 'COMPLETADA';
   completadaEn: string | null;
+  resultado: string | null;
+  creadaEn: string;
+  actualizadaEn: string;
+}
+
+export interface TaskInput {
+  descripcion: string;
+  tipo: TaskType;
+  fechaVencimiento: string;
+}
+
+export interface CreateActivityInput {
+  solicitudId: string;
+  tipo: ActivityType;
+  ocurridaEn: string;
+  resumen: string;
+  resultado?: string | null;
+  proximaAccion?: TaskInput;
+}
+
+export interface CreateActivityResponse {
+  actividad: RecordActivity;
+  proximaAccion: FollowUpTask | null;
+}
+
+export interface CreateTaskInput extends TaskInput {
+  solicitudId: string;
+}
+
+export interface UpdateTaskInput {
+  solicitudId: string;
+  descripcion?: string;
+  tipo?: TaskType;
+  fechaVencimiento?: string;
+}
+
+export interface CompleteTaskInput {
+  solicitudId: string;
+  resultado?: string | null;
+  siguienteTarea?: TaskInput;
+}
+
+export interface CompleteTaskResponse {
+  tarea: FollowUpTask;
+  siguienteTarea: FollowUpTask | null;
 }
 
 export interface CommercialRecordDetail extends Omit<
@@ -126,4 +174,27 @@ export function stageLabel(value: CommercialStage): string {
 
 export function interestLabel(value: InterestLevel): string {
   return INTEREST_LEVELS.find((item) => item.value === value)?.label ?? value;
+}
+
+export function activityTypeLabel(value: ActivityType): string {
+  const labels: Record<ActivityType, string> = {
+    LLAMADA: 'Llamada',
+    WHATSAPP: 'WhatsApp',
+    VISITA: 'Visita',
+    DEMO: 'Demo',
+    NOTA: 'Nota',
+  };
+  return labels[value];
+}
+
+export function taskTypeLabel(value: TaskType): string {
+  const labels: Record<TaskType, string> = {
+    LLAMADA: 'Llamada',
+    WHATSAPP: 'WhatsApp',
+    VISITA: 'Visita',
+    DEMO: 'Demo',
+    ENVIAR_PROPUESTA: 'Enviar propuesta',
+    OTRO: 'Otra acción',
+  };
+  return labels[value];
 }

@@ -19,6 +19,7 @@ import {
   InterestLevel,
   stageLabel,
 } from '../../models/commercial-record';
+import { FollowUpPanel } from './follow-up-panel';
 
 @Component({
   selector: 'app-record-detail',
@@ -29,6 +30,7 @@ import {
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
+    FollowUpPanel,
     RouterLink,
   ],
   templateUrl: './record-detail.html',
@@ -184,34 +186,15 @@ export class RecordDetail {
     if (id) this.load(id);
   }
 
+  reloadAfterFollowUp(message: string): void {
+    const id = this.recordId();
+    if (!id) return;
+    this.message.set(message);
+    this.load(id, true);
+  }
+
   stage(value: CommercialStage): string {
     return stageLabel(value);
-  }
-
-  activityType(value: string): string {
-    const labels: Record<string, string> = {
-      LLAMADA: 'Llamada',
-      WHATSAPP: 'WhatsApp',
-      VISITA: 'Visita',
-      DEMO: 'Demo',
-      NOTA: 'Nota',
-    };
-    return labels[value] ?? value;
-  }
-
-  timestamp(value: string): string {
-    return new Intl.DateTimeFormat('es-MX', {
-      timeZone: 'America/Mazatlan',
-      dateStyle: 'medium',
-      timeStyle: 'short',
-    }).format(new Date(value));
-  }
-
-  calendarDate(value: string): string {
-    return new Intl.DateTimeFormat('es-MX', {
-      timeZone: 'UTC',
-      dateStyle: 'medium',
-    }).format(new Date(`${value}T00:00:00Z`));
   }
 
   private load(recordId: string, preserveMessage = false): void {

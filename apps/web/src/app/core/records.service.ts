@@ -4,9 +4,16 @@ import { Observable } from 'rxjs';
 import {
   CommercialRecordDetail,
   CommercialRecordSummary,
+  CompleteTaskInput,
+  CompleteTaskResponse,
+  CreateActivityInput,
+  CreateActivityResponse,
+  CreateTaskInput,
+  FollowUpTask,
   RecordListQuery,
   RecordListResponse,
   RecordUpdateInput,
+  UpdateTaskInput,
 } from '../models/commercial-record';
 
 @Injectable({ providedIn: 'root' })
@@ -59,6 +66,52 @@ export class RecordsService {
     return this.http.post<CommercialRecordSummary>(
       `/api/projects/${projectId}/records/${recordId}/restore`,
       {},
+    );
+  }
+
+  createActivity(
+    projectId: string,
+    recordId: string,
+    input: CreateActivityInput,
+  ): Observable<CreateActivityResponse> {
+    return this.http.post<CreateActivityResponse>(
+      `/api/projects/${projectId}/records/${recordId}/activities`,
+      input,
+    );
+  }
+
+  createTask(
+    projectId: string,
+    recordId: string,
+    input: CreateTaskInput,
+  ): Observable<FollowUpTask> {
+    return this.http.post<FollowUpTask>(
+      `/api/projects/${projectId}/records/${recordId}/tasks`,
+      input,
+    );
+  }
+
+  updateTask(
+    projectId: string,
+    recordId: string,
+    taskId: string,
+    input: UpdateTaskInput,
+  ): Observable<FollowUpTask> {
+    return this.http.patch<FollowUpTask>(
+      `/api/projects/${projectId}/records/${recordId}/tasks/${taskId}`,
+      input,
+    );
+  }
+
+  completeTask(
+    projectId: string,
+    recordId: string,
+    taskId: string,
+    input: CompleteTaskInput,
+  ): Observable<CompleteTaskResponse> {
+    return this.http.post<CompleteTaskResponse>(
+      `/api/projects/${projectId}/records/${recordId}/tasks/${taskId}/complete`,
+      input,
     );
   }
 }

@@ -1,0 +1,398 @@
+<div class="follow-up-grid">
+  <mat-card appearance="outlined">
+    <mat-card-header class="section-header">
+      <div>
+        <mat-card-title>Historial</mat-card-title>
+        <mat-card-subtitle>Contactos y cambios relevantes</mat-card-subtitle>
+      </div>
+      @if (!record().archivadoEn) {
+        <button mat-flat-button type="button" (click)="showActivityForm.set(!showActivityForm())">
+          {{ showActivityForm() ? 'Cancelar' : 'Registrar contacto' }}
+        </button>
+      }
+    </mat-card-header>
+    <mat-card-content>
+      @if (showActivityForm()) {
+        <form class="action-form" [formGroup]="activityForm" (ngSubmit)="createActivity()">
+          <h3>Nuevo contacto</h3>
+          <div class="form-grid">
+            <mat-form-field appearance="outline">
+              <mat-label>Tipo</mat-label>
+              <mat-select formControlName="tipo">
+                @for (type of activityTypes; track type.value) {
+                  <mat-option [value]="type.value">{{ type.label }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Fecha y hora</mat-label>
+              <input matInput type="datetime-local" formControlName="ocurridaEn" />
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="wide">
+              <mat-label>Resumen</mat-label>
+              <textarea matInput rows="3" maxlength="4000" formControlName="resumen"></textarea>
+              @if (activityForm.controls.resumen.touched && activityForm.controls.resumen.invalid) {
+                <mat-error>Escribe un resumen.</mat-error>
+              }
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="wide">
+              <mat-label>Resultado (opcional)</mat-label>
+              <textarea matInput rows="2" maxlength="4000" formControlName="resultado"></textarea>
+            </mat-form-field>
+          </div>
+
+          <mat-checkbox formControlName="incluirProxima">Definir la próxima acción</mat-checkbox>
+          @if (activityForm.controls.incluirProxima.value) {
+            <div class="nested-task" [formGroup]="activityNextForm">
+              <h4>Próxima acción</h4>
+              <div class="form-grid">
+                <mat-form-field appearance="outline">
+                  <mat-label>Acción sugerida</mat-label>
+                  <mat-select
+                    formControlName="preset"
+                    (selectionChange)="applyPreset(activityNextForm)"
+                  >
+                    @for (preset of presets; track preset.value) {
+                      <mat-option [value]="preset.value">{{ preset.label }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Tipo</mat-label>
+                  <mat-select formControlName="tipo">
+                    @for (type of taskTypes; track type.value) {
+                      <mat-option [value]="type.value">{{ type.label }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="wide">
+                  <mat-label>Acción concreta</mat-label>
+                  <input matInput maxlength="240" formControlName="descripcion" />
+                </mat-form-field>
+                <div class="date-control wide">
+                  <mat-form-field appearance="outline">
+                    <mat-label>Fecha de vencimiento</mat-label>
+                    <input matInput type="date" formControlName="fechaVencimiento" />
+                  </mat-form-field>
+                  <div class="date-shortcuts" aria-label="Atajos de fecha">
+                    <button
+                      mat-stroked-button
+                      type="button"
+                      (click)="applyDate(activityNextForm, 'tomorrow')"
+                    >
+                      Mañana
+                    </button>
+                    <button
+                      mat-stroked-button
+                      type="button"
+                      (click)="applyDate(activityNextForm, 'week')"
+                    >
+                      En una semana
+                    </button>
+                    <button
+                      mat-stroked-button
+                      type="button"
+                      (click)="applyDate(activityNextForm, 'month')"
+                    >
+                      En un mes
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+          <button mat-flat-button type="submit" [disabled]="busy()">
+            {{ busy() ? 'Guardando…' : 'Guardar contacto' }}
+          </button>
+        </form>
+      }
+
+      @if (record().actividades.length === 0) {
+        <p class="empty-copy">Todavía no hay contactos o visitas.</p>
+      } @else {
+        <ol class="timeline">
+          @for (activity of record().actividades; track activity.id) {
+            <li>
+              <div class="item-heading">
+                <strong>{{ activityLabel(activity.tipo) }}</strong>
+                <span>{{ timestamp(activity.ocurridaEn) }}</span>
+              </div>
+              <p>{{ activity.detalle }}</p>
+              @if (activity.resultado) {
+                <p class="result"><b>Resultado:</b> {{ activity.resultado }}</p>
+              }
+            </li>
+          }
+        </ol>
+      }
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card appearance="outlined">
+    <mat-card-header class="section-header">
+      <div>
+        <mat-card-title>Seguimientos</mat-card-title>
+        <mat-card-subtitle>Próximas acciones y tareas completadas</mat-card-subtitle>
+      </div>
+      @if (!record().archivadoEn) {
+        <button mat-flat-button type="button" (click)="showTaskForm.set(!showTaskForm())">
+          {{ showTaskForm() ? 'Cancelar' : 'Nueva tarea' }}
+        </button>
+      }
+    </mat-card-header>
+    <mat-card-content>
+      @if (showMissingFollowUp()) {
+        <div class="missing-warning" role="status">
+          <strong>Sin próxima acción</strong>
+          <span>Este prospecto activo no tiene un seguimiento pendiente.</span>
+        </div>
+      }
+
+      @if (showTaskForm()) {
+        <form class="action-form" [formGroup]="newTaskForm" (ngSubmit)="createTask()">
+          <h3>Nueva tarea</h3>
+          <div class="form-grid">
+            <mat-form-field appearance="outline">
+              <mat-label>Acción sugerida</mat-label>
+              <mat-select formControlName="preset" (selectionChange)="applyPreset(newTaskForm)">
+                @for (preset of presets; track preset.value) {
+                  <mat-option [value]="preset.value">{{ preset.label }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Tipo</mat-label>
+              <mat-select formControlName="tipo">
+                @for (type of taskTypes; track type.value) {
+                  <mat-option [value]="type.value">{{ type.label }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="wide">
+              <mat-label>Acción concreta</mat-label>
+              <input matInput maxlength="240" formControlName="descripcion" />
+            </mat-form-field>
+            <div class="date-control wide">
+              <mat-form-field appearance="outline">
+                <mat-label>Fecha de vencimiento</mat-label>
+                <input matInput type="date" formControlName="fechaVencimiento" />
+              </mat-form-field>
+              <div class="date-shortcuts" aria-label="Atajos de fecha">
+                <button
+                  mat-stroked-button
+                  type="button"
+                  (click)="applyDate(newTaskForm, 'tomorrow')"
+                >
+                  Mañana
+                </button>
+                <button mat-stroked-button type="button" (click)="applyDate(newTaskForm, 'week')">
+                  En una semana
+                </button>
+                <button mat-stroked-button type="button" (click)="applyDate(newTaskForm, 'month')">
+                  En un mes
+                </button>
+              </div>
+            </div>
+          </div>
+          <button mat-flat-button type="submit" [disabled]="busy()">
+            {{ busy() ? 'Guardando…' : 'Crear tarea' }}
+          </button>
+        </form>
+      }
+
+      @if (errorMessage()) {
+        <p class="error" role="alert">{{ errorMessage() }}</p>
+      }
+
+      <h3 class="list-title">Pendientes</h3>
+      @if (pendingTasks().length === 0) {
+        <p class="empty-copy">No hay tareas pendientes.</p>
+      } @else {
+        <ul class="tasks">
+          @for (task of pendingTasks(); track task.id) {
+            <li>
+              <div class="task-summary">
+                <div>
+                  <strong>{{ task.descripcion }}</strong>
+                  <span
+                    >{{ taskLabel(task.tipo) }} · {{ calendarDate(task.fechaVencimiento) }}</span
+                  >
+                </div>
+                @if (!record().archivadoEn) {
+                  <div class="task-actions">
+                    <button
+                      mat-stroked-button
+                      type="button"
+                      [disabled]="busy()"
+                      (click)="startEdit(task)"
+                    >
+                      Editar
+                    </button>
+                    <button
+                      mat-flat-button
+                      type="button"
+                      [disabled]="busy()"
+                      (click)="startComplete(task)"
+                    >
+                      Completar
+                    </button>
+                  </div>
+                }
+              </div>
+
+              @if (editingTaskId() === task.id) {
+                <form class="inline-form" [formGroup]="editTaskForm" (ngSubmit)="updateTask()">
+                  <div class="form-grid">
+                    <mat-form-field appearance="outline" class="wide">
+                      <mat-label>Acción concreta</mat-label>
+                      <input matInput maxlength="240" formControlName="descripcion" />
+                    </mat-form-field>
+                    <mat-form-field appearance="outline">
+                      <mat-label>Tipo</mat-label>
+                      <mat-select formControlName="tipo">
+                        @for (type of taskTypes; track type.value) {
+                          <mat-option [value]="type.value">{{ type.label }}</mat-option>
+                        }
+                      </mat-select>
+                    </mat-form-field>
+                    <mat-form-field appearance="outline">
+                      <mat-label>Nueva fecha</mat-label>
+                      <input matInput type="date" formControlName="fechaVencimiento" />
+                    </mat-form-field>
+                    <div class="date-shortcuts wide">
+                      <button
+                        mat-stroked-button
+                        type="button"
+                        (click)="applyDate(editTaskForm, 'tomorrow')"
+                      >
+                        Mañana
+                      </button>
+                      <button
+                        mat-stroked-button
+                        type="button"
+                        (click)="applyDate(editTaskForm, 'week')"
+                      >
+                        En una semana
+                      </button>
+                      <button
+                        mat-stroked-button
+                        type="button"
+                        (click)="applyDate(editTaskForm, 'month')"
+                      >
+                        En un mes
+                      </button>
+                    </div>
+                  </div>
+                  <div class="inline-actions">
+                    <button mat-button type="button" (click)="editingTaskId.set(null)">
+                      Cancelar
+                    </button>
+                    <button mat-flat-button type="submit" [disabled]="busy()">
+                      Guardar cambios
+                    </button>
+                  </div>
+                </form>
+              }
+
+              @if (completingTaskId() === task.id) {
+                <form class="inline-form" [formGroup]="completeForm" (ngSubmit)="completeTask()">
+                  <mat-form-field appearance="outline" class="full-field">
+                    <mat-label>Resultado (opcional)</mat-label>
+                    <textarea
+                      matInput
+                      rows="2"
+                      maxlength="4000"
+                      formControlName="resultado"
+                    ></textarea>
+                  </mat-form-field>
+                  <mat-checkbox formControlName="programarOtra">Programar otra acción</mat-checkbox>
+                  @if (completeForm.controls.programarOtra.value) {
+                    <div class="nested-task" [formGroup]="completionNextForm">
+                      <div class="form-grid">
+                        <mat-form-field appearance="outline">
+                          <mat-label>Acción sugerida</mat-label>
+                          <mat-select
+                            formControlName="preset"
+                            (selectionChange)="applyPreset(completionNextForm)"
+                          >
+                            @for (preset of presets; track preset.value) {
+                              <mat-option [value]="preset.value">{{ preset.label }}</mat-option>
+                            }
+                          </mat-select>
+                        </mat-form-field>
+                        <mat-form-field appearance="outline">
+                          <mat-label>Tipo</mat-label>
+                          <mat-select formControlName="tipo">
+                            @for (type of taskTypes; track type.value) {
+                              <mat-option [value]="type.value">{{ type.label }}</mat-option>
+                            }
+                          </mat-select>
+                        </mat-form-field>
+                        <mat-form-field appearance="outline" class="wide">
+                          <mat-label>Acción concreta</mat-label>
+                          <input matInput maxlength="240" formControlName="descripcion" />
+                        </mat-form-field>
+                        <div class="date-control wide">
+                          <mat-form-field appearance="outline">
+                            <mat-label>Fecha</mat-label>
+                            <input matInput type="date" formControlName="fechaVencimiento" />
+                          </mat-form-field>
+                          <div class="date-shortcuts">
+                            <button
+                              mat-stroked-button
+                              type="button"
+                              (click)="applyDate(completionNextForm, 'tomorrow')"
+                            >
+                              Mañana
+                            </button>
+                            <button
+                              mat-stroked-button
+                              type="button"
+                              (click)="applyDate(completionNextForm, 'week')"
+                            >
+                              En una semana
+                            </button>
+                            <button
+                              mat-stroked-button
+                              type="button"
+                              (click)="applyDate(completionNextForm, 'month')"
+                            >
+                              En un mes
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  }
+                  <div class="inline-actions">
+                    <button mat-button type="button" (click)="completingTaskId.set(null)">
+                      Cancelar
+                    </button>
+                    <button mat-flat-button type="submit" [disabled]="busy()">Confirmar</button>
+                  </div>
+                </form>
+              }
+            </li>
+          }
+        </ul>
+      }
+
+      @if (completedTasks().length > 0) {
+        <details class="completed-section">
+          <summary>Completadas ({{ completedTasks().length }})</summary>
+          <ul class="tasks completed-list">
+            @for (task of completedTasks(); track task.id) {
+              <li>
+                <strong>{{ task.descripcion }}</strong>
+                <span>Vencía {{ calendarDate(task.fechaVencimiento) }}</span>
+                @if (task.resultado) {
+                  <p class="result"><b>Resultado:</b> {{ task.resultado }}</p>
+                }
+              </li>
+            }
+          </ul>
+        </details>
+      }
+    </mat-card-content>
+  </mat-card>
+</div>

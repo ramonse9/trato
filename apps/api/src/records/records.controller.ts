@@ -13,6 +13,12 @@ import type { AuthenticatedRequest } from '../common/authenticated-request.js';
 import { CreateRecordDto } from './dto/create-record.dto.js';
 import { ListRecordsQueryDto } from './dto/list-records-query.dto.js';
 import { UpdateRecordDto } from './dto/update-record.dto.js';
+import {
+  CompleteTaskDto,
+  CreateActivityDto,
+  CreateTaskDto,
+  UpdateTaskDto,
+} from './dto/follow-up.dto.js';
 import { RecordsService } from './records.service.js';
 
 @Controller('projects/:projectId/records')
@@ -89,6 +95,21 @@ export class RecordsController {
     );
   }
 
+  @Post(':recordId/activities')
+  createActivity(
+    @Req() request: AuthenticatedRequest,
+    @Param('projectId', ParseUUIDPipe) projectId: string,
+    @Param('recordId', ParseUUIDPipe) recordId: string,
+    @Body() dto: CreateActivityDto,
+  ) {
+    return this.records.createActivity(
+      request.auth.user.id,
+      projectId,
+      recordId,
+      dto,
+    );
+  }
+
   @Get(':recordId/tasks/:taskId')
   getTask(
     @Req() request: AuthenticatedRequest,
@@ -101,6 +122,55 @@ export class RecordsController {
       projectId,
       recordId,
       taskId,
+    );
+  }
+
+  @Post(':recordId/tasks')
+  createTask(
+    @Req() request: AuthenticatedRequest,
+    @Param('projectId', ParseUUIDPipe) projectId: string,
+    @Param('recordId', ParseUUIDPipe) recordId: string,
+    @Body() dto: CreateTaskDto,
+  ) {
+    return this.records.createTask(
+      request.auth.user.id,
+      projectId,
+      recordId,
+      dto,
+    );
+  }
+
+  @Patch(':recordId/tasks/:taskId')
+  updateTask(
+    @Req() request: AuthenticatedRequest,
+    @Param('projectId', ParseUUIDPipe) projectId: string,
+    @Param('recordId', ParseUUIDPipe) recordId: string,
+    @Param('taskId', ParseUUIDPipe) taskId: string,
+    @Body() dto: UpdateTaskDto,
+  ) {
+    return this.records.updateTask(
+      request.auth.user.id,
+      projectId,
+      recordId,
+      taskId,
+      dto,
+    );
+  }
+
+  @Post(':recordId/tasks/:taskId/complete')
+  completeTask(
+    @Req() request: AuthenticatedRequest,
+    @Param('projectId', ParseUUIDPipe) projectId: string,
+    @Param('recordId', ParseUUIDPipe) recordId: string,
+    @Param('taskId', ParseUUIDPipe) taskId: string,
+    @Body() dto: CompleteTaskDto,
+  ) {
+    return this.records.completeTask(
+      request.auth.user.id,
+      projectId,
+      recordId,
+      taskId,
+      dto,
     );
   }
 }

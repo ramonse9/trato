@@ -85,7 +85,7 @@ TEST_DATABASE_URL=postgresql://TU_USUARIO@localhost:5432/trato_e2e npm run test:
 dropdb trato_e2e
 ```
 
-La suite e2e limpia por completo la base indicada en `TEST_DATABASE_URL` antes de preparar sus casos. Comprueba acceso anónimo, aislamiento entre usuarios y proyectos, registros cruzados, actividades, tareas, CSRF, limitación de intentos, cierre de sesión y el ciclo de creación, edición, archivo y restauración de proyectos.
+La suite e2e limpia por completo la base indicada en `TEST_DATABASE_URL` antes de preparar sus casos. Comprueba acceso anónimo, aislamiento entre usuarios y proyectos, registros cruzados, actividades, tareas, operaciones idempotentes, CSRF, limitación de intentos, cierre de sesión y los ciclos de proyectos y registros.
 
 La prueba integral del endpoint requiere que PostgreSQL esté activo:
 
@@ -108,6 +108,14 @@ Entra en **Prospectos y clientes** para buscar y filtrar la cartera del proyecto
 **Nuevo prospecto** pide solamente el nombre del negocio. Desde la ficha se completan encargado, teléfono internacional, correo, dirección, etapa, interés y notas. Elegir la etapa **Cliente** conserva el mismo registro y todo su historial.
 
 Los registros archivados se encuentran en la vista **Archivados** del mismo listado. Pueden consultarse y restaurarse, pero no editarse mientras continúen archivados. No hay una acción de borrado definitivo.
+
+## Historial y seguimientos
+
+Desde la ficha usa **Registrar contacto** para guardar una llamada, WhatsApp, visita, demo o nota con su fecha, resumen y resultado. El mismo formulario permite dejar la próxima acción. **Nueva tarea** crea un seguimiento sin tener que registrar antes un contacto.
+
+Las tareas pendientes se pueden editar, reprogramar o completar. Al completarlas, el resultado es opcional y también puedes programar otra acción. Los atajos disponibles son mañana, en una semana y en un mes; el campo de fecha permite elegir cualquier otra fecha.
+
+Las reprogramaciones, finalizaciones y cambios de etapa aparecen como notas automáticas del historial. Los formularios bloquean el doble toque y la API usa identificadores idempotentes para que un reenvío de red tampoco cree duplicados.
 
 ## Sesiones en producción
 

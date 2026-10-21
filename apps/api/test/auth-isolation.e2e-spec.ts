@@ -36,6 +36,7 @@ describeDatabase('Acceso privado y aislamiento (e2e)', () => {
     prisma = app.get(PrismaService);
 
     await prisma.sesion.deleteMany();
+    await prisma.operacionRegistro.deleteMany();
     await prisma.actividad.deleteMany();
     await prisma.tareaSeguimiento.deleteMany();
     await prisma.registroComercial.deleteMany();
@@ -274,7 +275,10 @@ describeDatabase('Acceso privado y aislamiento (e2e)', () => {
       .expect(200);
     expect(converted.body.id).toBe(recordA);
     expect(converted.body.etapa).toBe('CLIENTE');
-    expect(converted.body.actividades).toHaveLength(1);
+    expect(converted.body.actividades).toHaveLength(2);
+    expect(converted.body.actividades[0].detalle).toBe(
+      'Cambio de etapa comercial',
+    );
     expect(converted.body.tareasSeguimiento).toHaveLength(1);
 
     const created = await agent
@@ -352,6 +356,192 @@ describeDatabase('Acceso privado y aislamiento (e2e)', () => {
     expect(restored.body.notasGenerales).toBe('Conserva la misma ficha.');
   });
 
+  it('registra contactos y tareas sin duplicarlos y conserva los cambios relevantes', async () => {
+    const created = await agent
+      .post(`/api/projects/${projectA}/records`)
+      .set('Origin', 'http://localhost:4200')
+      .set('X-CSRF-Token', csrfToken)
+      .send({ nombreNegocio: 'Prospecto con seguimiento' })
+      .expect(201);
+    const recordId = created.body.id as string;
+    const activityRequest = '61000000-0000-4000-8000-000000000001';
+    const activityPayload = {
+      solicitudId: activityRequest,
+      tipo: 'VISITA',
+      ocurridaEn: '2026-10-21T19:30:00.000Z',
+      resumen: 'Se presentó el producto.',
+      resultado: 'Solicitó una propuesta.',
+      proximaAccion: {
+        descripcion: 'Enviar propuesta',
+        tipo: 'ENVIAR_PROPUESTA',
+        fechaVencimiento: '2026-10-31',
+      },
+    };
+
+    const firstActivity = await agent
+      .post(`/api/projects/${projectA}/records/${recordId}/activities`)
+      .set('Origin', 'http://localhost:4200')
+      .set('X-CSRF-Token', csrfToken)
+      .send(activityPayload)
+      .expect(201);
+    const repeatedActivity = await agent
+      .post(`/api/projects/${projectA}/records/${recordId}/activities`)
+      .set('Origin', 'http://localhost:4200')
+      .set('X-CSRF-Token', csrfToken)
+      .send(activityPayload)
+      .expect(201);
+    expect(repeatedActivity.body.actividad.id).toBe(
+      firstActivity.body.actividad.id,
+    );
+    expect(repeatedActivity.body.proximaAccion.id).toBe(
+      firstActivity.body.proximaAccion.id,
+    );
+
+    const secondActivity = await agent
+      .post(`/api/projects/${projectA}/records/${recordId}/activities`)
+      .set('Origin', 'http://localhost:4200')
+      .set('X-CSRF-Token', csrfToken)
+      .send({
+        solicitudId: '61000000-0000-4000-8000-000000000002',
+        tipo: 'WHATSAPP',
+        ocurridaEn: '2026-10-22T17:00:00.000Z',
+        resumen: 'Confirmó que revisará la propuesta.',
+      })
+      .expect(201);
+
+    const taskRequest = '62000000-0000-4000-8000-000000000001';
+    const taskPayload = {
+      solicitudId: taskRequest,
+      descripcion: 'Llamar al encargado',
+      tipo: 'LLAMADA',
+      fechaVencimiento: '2026-11-01',
+    };
+    const firstTask = await agent
+      .post(`/api/projects/${projectA}/records/${recordId}/tasks`)
+      .set('Origin', 'http://localhost:4200')
+      .set('X-CSRF-Token', csrfToken)
+      .send(taskPayload)
+      .expect(201);
+    const repeatedTask = await agent
+      .post(`/api/projects/${projectA}/records/${recordId}/tasks`)
+      .set('Origin', 'http://localhost:4200')
+      .set('X-CSRF-Token', csrfToken)
+      .send(taskPayload)
+      .expect(201);
+    expect(repeatedTask.body.id).toBe(firstTask.body.id);
+
+    const editPayload = {
+      solicitudId: '63000000-0000-4000-8000-000000000001',
+      descripcion: 'Llamar al encargado principal',
+      fechaVencimiento: '2026-11-30',
+    };
+    await agent
+      .patch(
+        `/api/projects/${projectA}/records/${recordId}/tasks/${firstTask.body.id}`,
+      )
+      .set('Origin', 'http://localhost:4200')
+      .set('X-CSRF-Token', csrfToken)
+      .send(editPayload)
+      .expect(200);
+    await agent
+      .patch(
+        `/api/projects/${projectA}/records/${recordId}/tasks/${firstTask.body.id}`,
+      )
+      .set('Origin', 'http://localhost:4200')
+      .set('X-CSRF-Token', csrfToken)
+      .send(editPayload)
+      .expect(200);
+
+    const completePayload = {
+      solicitudId: '64000000-0000-4000-8000-000000000001',
+      resultado: 'Pidió retomar la conversación después del cierre mensual.',
+      siguienteTarea: {
+        descripcion: 'Volver a llamar',
+        tipo: 'LLAMADA',
+        fechaVencimiento: '2026-12-31',
+      },
+    };
+    const firstCompletion = await agent
+      .post(
+        `/api/projects/${projectA}/records/${recordId}/tasks/${firstTask.body.id}/complete`,
+      )
+      .set('Origin', 'http://localhost:4200')
+      .set('X-CSRF-Token', csrfToken)
+      .send(completePayload)
+      .expect(201);
+    const repeatedCompletion = await agent
+      .post(
+        `/api/projects/${projectA}/records/${recordId}/tasks/${firstTask.body.id}/complete`,
+      )
+      .set('Origin', 'http://localhost:4200')
+      .set('X-CSRF-Token', csrfToken)
+      .send(completePayload)
+      .expect(201);
+    expect(repeatedCompletion.body.siguienteTarea.id).toBe(
+      firstCompletion.body.siguienteTarea.id,
+    );
+
+    await agent
+      .patch(`/api/projects/${projectA}/records/${recordId}`)
+      .set('Origin', 'http://localhost:4200')
+      .set('X-CSRF-Token', csrfToken)
+      .send({ etapa: 'CONTACTADO' })
+      .expect(200);
+    await agent
+      .patch(`/api/projects/${projectA}/records/${recordId}`)
+      .set('Origin', 'http://localhost:4200')
+      .set('X-CSRF-Token', csrfToken)
+      .send({ etapa: 'CONTACTADO' })
+      .expect(200);
+
+    const detail = await agent
+      .get(`/api/projects/${projectA}/records/${recordId}`)
+      .expect(200);
+    const activityIds = detail.body.actividades.map(
+      (item: { id: string }) => item.id,
+    );
+    expect(activityIds).toContain(secondActivity.body.actividad.id);
+    expect(activityIds.indexOf(secondActivity.body.actividad.id)).toBeLessThan(
+      activityIds.indexOf(firstActivity.body.actividad.id),
+    );
+    expect(
+      detail.body.actividades.filter(
+        (item: { detalle: string }) =>
+          item.detalle === 'Cambio de etapa comercial',
+      ),
+    ).toHaveLength(1);
+    expect(
+      detail.body.actividades.filter((item: { detalle: string }) =>
+        item.detalle.startsWith('Seguimiento reprogramado:'),
+      ),
+    ).toHaveLength(1);
+    expect(
+      detail.body.actividades.filter((item: { detalle: string }) =>
+        item.detalle.startsWith('Seguimiento completado:'),
+      ),
+    ).toHaveLength(1);
+    expect(detail.body.actividades).toHaveLength(5);
+    const completed = detail.body.tareasSeguimiento.find(
+      (task: { id: string }) => task.id === firstTask.body.id,
+    );
+    expect(completed.estado).toBe('COMPLETADA');
+    expect(completed.fechaVencimiento).toBe('2026-11-30');
+    expect(completed.resultado).toContain('cierre mensual');
+    expect(detail.body.tareasSeguimiento).toHaveLength(3);
+
+    await agent
+      .post(`/api/projects/${projectA}/records/${recordId}/tasks`)
+      .set('Origin', 'http://localhost:4200')
+      .set('X-CSRF-Token', csrfToken)
+      .send({
+        solicitudId: '62000000-0000-4000-8000-000000000002',
+        descripcion: 'Fecha imposible',
+        tipo: 'OTRO',
+        fechaVencimiento: '2026-02-31',
+      })
+      .expect(400);
+  });
+
   it('no mezcla actividades ni tareas entre proyectos', async () => {
     await agent
       .get(
@@ -360,6 +550,25 @@ describeDatabase('Acceso privado y aislamiento (e2e)', () => {
       .expect(404);
     await agent
       .get(`/api/projects/${projectA}/records/${recordA}/tasks/${taskB}`)
+      .expect(404);
+    await agent
+      .post(`/api/projects/${projectA}/records/${recordB}/activities`)
+      .set('Origin', 'http://localhost:4200')
+      .set('X-CSRF-Token', csrfToken)
+      .send({
+        solicitudId: '65000000-0000-4000-8000-000000000001',
+        tipo: 'NOTA',
+        ocurridaEn: '2026-10-21T20:00:00.000Z',
+        resumen: 'Intento cruzado',
+      })
+      .expect(404);
+    await agent
+      .post(
+        `/api/projects/${projectA}/records/${recordA}/tasks/${taskB}/complete`,
+      )
+      .set('Origin', 'http://localhost:4200')
+      .set('X-CSRF-Token', csrfToken)
+      .send({ solicitudId: '65000000-0000-4000-8000-000000000002' })
       .expect(404);
   });
 

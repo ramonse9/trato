@@ -7,7 +7,7 @@
 - [x] Etapa 3 — Acceso privado
 - [x] Etapa 4 — Proyectos comerciales
 - [x] Etapa 5 — Clientes y prospectos
-- [ ] Etapa 6 — Seguimiento comercial
+- [x] Etapa 6 — Seguimiento comercial
 - [ ] Etapa 7 — Pendientes y semáforo
 - [ ] Etapa 8 — Enlaces y pulido móvil
 
@@ -43,7 +43,11 @@ La ficha edita datos generales, etapa, interés y notas, y consulta historial y 
 
 ## Etapa 6 — Seguimiento comercial
 
-Etapas, interés, próxima acción e historial cronológico de contactos y visitas. Formularios rápidos después de una visita.
+Actividades de llamada, WhatsApp, visita, demo y nota con fecha, resumen y resultado opcional. La ficha permite registrar el contacto y definir en el mismo flujo una próxima acción, además de crear, editar, reprogramar y completar tareas con otra tarea opcional.
+
+Los cambios de etapa, reprogramaciones y finalizaciones quedan como notas del historial. Los vencimientos continúan como fechas de calendario y el atajo “En un mes” ajusta al último día válido. Los prospectos activos sin pendiente muestran una advertencia que no se aplica por defecto a clientes.
+
+Las operaciones compuestas son transaccionales e idempotentes mediante UUID de solicitud persistido, por lo que un formulario reenviado no duplica actividades ni tareas. Verificado aplicando las tres migraciones desde cero y con 13 pruebas e2e sobre PostgreSQL limpio, incluidas duplicación, orden inverso, aislamiento, cambio de etapa, reprogramación, finalización y siguiente tarea.
 
 ## Etapa 7 — Pendientes y semáforo
 

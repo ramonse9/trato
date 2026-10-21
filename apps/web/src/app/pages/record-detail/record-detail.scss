@@ -70,7 +70,7 @@ h1 {
 
 .detail-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.55fr) minmax(18rem, 0.85fr);
+  grid-template-columns: minmax(0, 1fr);
   align-items: start;
   gap: 1rem;
   margin-top: 2rem;
@@ -101,52 +101,6 @@ mat-card-content {
 
 .error {
   color: #a03d32;
-}
-
-.timeline-column {
-  display: grid;
-  gap: 1rem;
-}
-
-.timeline,
-.tasks {
-  display: grid;
-  gap: 1rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.timeline li,
-.tasks li {
-  padding-left: 0.9rem;
-  border-left: 2px solid #8eb5a5;
-}
-
-.timeline span,
-.tasks span,
-.tasks small {
-  display: block;
-  margin-top: 0.15rem;
-  color: #71827c;
-  font-size: 0.78rem;
-}
-
-.timeline p {
-  margin: 0.45rem 0 0;
-  color: #526860;
-  line-height: 1.5;
-}
-
-.tasks li.completed {
-  border-left-color: #b8b8b0;
-  opacity: 0.72;
-}
-
-.empty-copy {
-  margin-bottom: 0;
-  color: #71827c;
-  line-height: 1.5;
 }
 
 .archive-zone {

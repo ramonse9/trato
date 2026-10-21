@@ -96,6 +96,17 @@ Las rutas de cartera llevan contexto explícito: `/api/projects/:projectId/recor
 - Archivar un registro conserva toda su información y lo retira de la cartera habitual. Los archivados se consultan por separado, permanecen en modo de solo lectura y pueden restaurarse. No existe borrado definitivo en la interfaz ni en la API inicial.
 - Las respuestas del listado y de la ficha se aplican únicamente si siguen coincidiendo proyecto, revisión de contexto e identificador de registro. Cambiar de proyecto cancela las lecturas en curso y limpia filtros, formulario y resultados visibles.
 
+## Historial y próximas acciones
+
+- Las actividades son eventos inmutables de llamada, WhatsApp, visita, demo o nota. Guardan fecha y hora, resumen y resultado opcional, y se muestran de la más reciente a la más antigua.
+- Registrar un contacto puede crear su próxima tarea dentro de la misma transacción. Si cualquiera de las dos escrituras falla, no se conserva una operación parcial.
+- Las tareas pendientes pueden crearse, editarse, reprogramarse y completarse. Una tarea completada conserva su fecha original o reprogramada, resultado y marca de tiempo; no vuelve al estado pendiente ni se edita después de completarse.
+- Completar una tarea puede crear otra de manera opcional y atómica. Los clientes pueden mantener tareas, pero la advertencia “Sin próxima acción” se reserva para prospectos activos que no estén descartados.
+- Los cambios de etapa, las reprogramaciones y las finalizaciones generan notas automáticas en el historial. Repetir el mismo cambio de etapa no crea una nota adicional.
+- Los atajos calculan mañana y una semana como fechas de calendario. “En un mes” conserva el número de día y, si no existe, usa el último día del mes de destino.
+- Cada formulario de historial o seguimiento envía un UUID de solicitud. La API lo registra en PostgreSQL dentro de la misma transacción que la operación; un reenvío con el mismo UUID devuelve los recursos ya creados sin duplicarlos.
+- Las mutaciones de actividades y tareas reutilizan la cadena de autorización usuario–proyecto–registro y los identificadores anidados. Los registros y proyectos archivados permanecen en modo de solo lectura.
+
 ## Principios de entrega
 
 - Cada etapa debe terminar con una parte funcional y verificable.
