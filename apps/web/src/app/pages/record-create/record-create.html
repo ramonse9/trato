@@ -1,0 +1,32 @@
+<header class="page-header">
+  <p class="eyebrow">Nuevo registro</p>
+  <h1>Crear prospecto</h1>
+  <p>Solo necesitas el nombre del negocio. Podrás completar los demás datos cuando los conozcas.</p>
+</header>
+
+<mat-card appearance="outlined">
+  <mat-card-content>
+    <form [formGroup]="form" (ngSubmit)="save()">
+      <mat-form-field appearance="outline">
+        <mat-label>Nombre del negocio</mat-label>
+        <input matInput formControlName="nombreNegocio" maxlength="180" autofocus />
+        @if (form.controls.nombreNegocio.touched && form.controls.nombreNegocio.invalid) {
+          <mat-error>El nombre del negocio es obligatorio.</mat-error>
+        }
+      </mat-form-field>
+
+      @if (errorMessage()) {
+        <p class="error" role="alert">{{ errorMessage() }}</p>
+      }
+
+      <div class="actions">
+        @if (context.activeProject(); as project) {
+          <a mat-button [routerLink]="['/p', project.id, 'records']">Cancelar</a>
+        }
+        <button mat-flat-button type="submit" [disabled]="saving()">
+          {{ saving() ? 'Creando…' : 'Crear y abrir ficha' }}
+        </button>
+      </div>
+    </form>
+  </mat-card-content>
+</mat-card>

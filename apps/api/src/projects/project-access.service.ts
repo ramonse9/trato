@@ -39,6 +39,21 @@ export class ProjectAccessService {
     return record;
   }
 
+  async requireActiveRecord(
+    userId: string,
+    projectId: string,
+    recordId: string,
+  ) {
+    await this.requireActiveProject(userId, projectId);
+    const record = await this.requireRecord(userId, projectId, recordId);
+    if (record.archivadoEn) {
+      throw new ConflictException(
+        'El registro está archivado. Restáuralo antes de modificarlo.',
+      );
+    }
+    return record;
+  }
+
   async requireActivity(
     userId: string,
     projectId: string,

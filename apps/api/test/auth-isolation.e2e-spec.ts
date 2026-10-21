@@ -69,7 +69,14 @@ describeDatabase('Acceso privado y aislamiento (e2e)', () => {
 
     const [createdRecordA, createdRecordB] = await Promise.all([
       prisma.registroComercial.create({
-        data: { nombreNegocio: 'Negocio A', proyectoId: projectA },
+        data: {
+          nombreNegocio: 'Negocio A',
+          nombreEncargado: 'Ana Encargada',
+          telefono: '+526691112233',
+          etapa: 'CONTACTADO',
+          nivelInteres: 'ALTO',
+          proyectoId: projectA,
+        },
       }),
       prisma.registroComercial.create({
         data: { nombreNegocio: 'Negocio B', proyectoId: projectB },
@@ -77,6 +84,27 @@ describeDatabase('Acceso privado y aislamiento (e2e)', () => {
     ]);
     recordA = createdRecordA.id;
     recordB = createdRecordB.id;
+
+    await Promise.all([
+      prisma.actividad.create({
+        data: {
+          proyectoId: projectA,
+          registroId: recordA,
+          tipo: 'LLAMADA',
+          detalle: 'Último contacto del proyecto A',
+          ocurridaEn: new Date('2026-10-20T18:00:00.000Z'),
+        },
+      }),
+      prisma.tareaSeguimiento.create({
+        data: {
+          proyectoId: projectA,
+          registroId: recordA,
+          tipo: 'VISITA',
+          descripcion: 'Visitar Negocio A',
+          fechaVencimiento: new Date('2026-10-28T00:00:00.000Z'),
+        },
+      }),
+    ]);
 
     const [activity, task] = await Promise.all([
       prisma.actividad.create({
@@ -191,11 +219,137 @@ describeDatabase('Acceso privado y aislamiento (e2e)', () => {
       .set('X-CSRF-Token', csrfToken)
       .send({ nombreNegocio: 'Intento cruzado' })
       .expect(404);
+    await agent
+      .post(`/api/projects/${projectA}/records/${recordB}/archive`)
+      .set('Origin', 'http://localhost:4200')
+      .set('X-CSRF-Token', csrfToken)
+      .send({})
+      .expect(404);
 
     const unchanged = await prisma.registroComercial.findUniqueOrThrow({
       where: { id: recordB },
     });
     expect(unchanged.nombreNegocio).toBe('Negocio B');
+  });
+
+  it('crea, edita, filtra, pagina, archiva y restaura registros', async () => {
+    await agent
+      .post(`/api/projects/${projectA}/records`)
+      .set('Origin', 'http://localhost:4200')
+      .set('X-CSRF-Token', csrfToken)
+      .send({ nombreNegocio: '   ' })
+      .expect(400);
+
+    const initialList = await agent
+      .get(`/api/projects/${projectA}/records?page=1&pageSize=1`)
+      .expect(200);
+    expect(initialList.body.page).toBe(1);
+    expect(initialList.body.pageSize).toBe(1);
+    expect(initialList.body.total).toBeGreaterThanOrEqual(1);
+    expect(initialList.body.items).toHaveLength(1);
+
+    const filtered = await agent
+      .get(
+        `/api/projects/${projectA}/records?search=ana&etapa=CONTACTADO&nivelInteres=ALTO`,
+      )
+      .expect(200);
+    expect(filtered.body.items).toHaveLength(1);
+    expect(filtered.body.items[0].id).toBe(recordA);
+    expect(filtered.body.items[0].ultimoContacto.tipo).toBe('LLAMADA');
+    expect(filtered.body.items[0].proximaAccion.descripcion).toBe(
+      'Visitar Negocio A',
+    );
+    expect(filtered.body.items[0].proximaAccion.fechaVencimiento).toBe(
+      '2026-10-28',
+    );
+
+    await agent
+      .patch(`/api/projects/${projectA}/records/${recordA}`)
+      .set('Origin', 'http://localhost:4200')
+      .set('X-CSRF-Token', csrfToken)
+      .send({ etapa: 'CLIENTE' })
+      .expect(200);
+    const converted = await agent
+      .get(`/api/projects/${projectA}/records/${recordA}`)
+      .expect(200);
+    expect(converted.body.id).toBe(recordA);
+    expect(converted.body.etapa).toBe('CLIENTE');
+    expect(converted.body.actividades).toHaveLength(1);
+    expect(converted.body.tareasSeguimiento).toHaveLength(1);
+
+    const created = await agent
+      .post(`/api/projects/${projectA}/records`)
+      .set('Origin', 'http://localhost:4200')
+      .set('X-CSRF-Token', csrfToken)
+      .send({ nombreNegocio: '  Prospecto mínimo  ' })
+      .expect(201);
+    expect(created.body.nombreNegocio).toBe('Prospecto mínimo');
+    expect(created.body.etapa).toBe('POR_CONTACTAR');
+    expect(created.body.nivelInteres).toBe('SIN_EVALUAR');
+
+    const updated = await agent
+      .patch(`/api/projects/${projectA}/records/${created.body.id}`)
+      .set('Origin', 'http://localhost:4200')
+      .set('X-CSRF-Token', csrfToken)
+      .send({
+        nombreEncargado: 'María Cliente',
+        telefono: '+526699998877',
+        etapa: 'CLIENTE',
+        nivelInteres: 'ALTO',
+        notasGenerales: 'Conserva la misma ficha.',
+      })
+      .expect(200);
+    expect(updated.body.id).toBe(created.body.id);
+    expect(updated.body.etapa).toBe('CLIENTE');
+
+    const clientSearch = await agent
+      .get(
+        `/api/projects/${projectA}/records?search=%2B526699998877&etapa=CLIENTE`,
+      )
+      .expect(200);
+    expect(
+      clientSearch.body.items.map((item: { id: string }) => item.id),
+    ).toEqual([created.body.id]);
+
+    await agent
+      .post(`/api/projects/${projectA}/records/${created.body.id}/archive`)
+      .set('Origin', 'http://localhost:4200')
+      .set('X-CSRF-Token', csrfToken)
+      .send({})
+      .expect(201);
+
+    const regularList = await agent
+      .get(`/api/projects/${projectA}/records?search=Prospecto%20mínimo`)
+      .expect(200);
+    expect(regularList.body.total).toBe(0);
+    const archivedList = await agent
+      .get(
+        `/api/projects/${projectA}/records?archived=true&search=Prospecto%20mínimo`,
+      )
+      .expect(200);
+    expect(archivedList.body.items[0].id).toBe(created.body.id);
+
+    await agent
+      .patch(`/api/projects/${projectA}/records/${created.body.id}`)
+      .set('Origin', 'http://localhost:4200')
+      .set('X-CSRF-Token', csrfToken)
+      .send({ nombreNegocio: 'No debe cambiar' })
+      .expect(409);
+
+    await agent
+      .post(`/api/projects/${projectA}/records/${created.body.id}/restore`)
+      .set('Origin', 'http://localhost:4200')
+      .set('X-CSRF-Token', csrfToken)
+      .send({})
+      .expect(201);
+
+    const restored = await agent
+      .get(`/api/projects/${projectA}/records/${created.body.id}`)
+      .expect(200);
+    expect(restored.body.archivadoEn).toBeNull();
+    expect(restored.body.nombreNegocio).toBe('Prospecto mínimo');
+    expect(restored.body.etapa).toBe('CLIENTE');
+    expect(restored.body.notasGenerales).toBe('Conserva la misma ficha.');
   });
 
   it('no mezcla actividades ni tareas entre proyectos', async () => {

@@ -101,6 +101,14 @@ Después de iniciar sesión, Trato valida el último proyecto seleccionado y abr
 
 El identificador recordado en el navegador no concede acceso: cada ruta y operación vuelve a comprobar en NestJS que el proyecto pertenezca al usuario autenticado.
 
+## Prospectos y clientes
+
+Entra en **Prospectos y clientes** para buscar y filtrar la cartera del proyecto activo. El listado muestra 20 registros por página e incluye el último contacto y la próxima tarea pendiente. En pantallas pequeñas cambia automáticamente a tarjetas.
+
+**Nuevo prospecto** pide solamente el nombre del negocio. Desde la ficha se completan encargado, teléfono internacional, correo, dirección, etapa, interés y notas. Elegir la etapa **Cliente** conserva el mismo registro y todo su historial.
+
+Los registros archivados se encuentran en la vista **Archivados** del mismo listado. Pueden consultarse y restaurarse, pero no editarse mientras continúen archivados. No hay una acción de borrado definitivo.
+
 ## Sesiones en producción
 
 Sirve la web y la API bajo el mismo sitio HTTPS, configura `NODE_ENV=production` y establece `WEB_ORIGIN` con el origen público exacto (esquema, host y puerto). En producción la cookie lleva `Secure` y el prefijo `__Host-`. `SESSION_TTL_DAYS` controla su vigencia (7 días por defecto; máximo 30). Los tokens de sesión se almacenan con hash en PostgreSQL y cerrar sesión los revoca.

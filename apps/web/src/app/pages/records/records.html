@@ -1,0 +1,172 @@
+<header class="page-header">
+  <div>
+    <p class="eyebrow">Cartera del proyecto</p>
+    <h1>Prospectos y clientes</h1>
+    <p>
+      Solo se muestran registros de <strong>{{ context.activeProject()?.nombre }}</strong
+      >.
+    </p>
+  </div>
+  @if (!archived() && context.activeProject(); as project) {
+    <a mat-flat-button [routerLink]="['/p', project.id, 'records', 'new']">Nuevo prospecto</a>
+  }
+</header>
+
+<div class="view-switch" role="group" aria-label="Estado de los registros">
+  <button mat-button type="button" [class.active]="!archived()" (click)="showArchived(false)">
+    Activos
+  </button>
+  <button mat-button type="button" [class.active]="archived()" (click)="showArchived(true)">
+    Archivados
+  </button>
+</div>
+
+<form class="filters" [formGroup]="filters" (ngSubmit)="applyFilters()">
+  <mat-form-field appearance="outline" class="search-field">
+    <mat-label>Buscar negocio, encargado o teléfono</mat-label>
+    <input matInput formControlName="search" />
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Etapa</mat-label>
+    <mat-select formControlName="etapa">
+      <mat-option value="">Todas</mat-option>
+      @for (item of stages; track item.value) {
+        <mat-option [value]="item.value">{{ item.label }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Interés</mat-label>
+    <mat-select formControlName="nivelInteres">
+      <mat-option value="">Todos</mat-option>
+      @for (item of interests; track item.value) {
+        <mat-option [value]="item.value">{{ item.label }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+
+  <div class="filter-actions">
+    <button mat-flat-button type="submit">Aplicar</button>
+    <button mat-button type="button" (click)="clearFilters()">Limpiar</button>
+  </div>
+</form>
+
+@if (loading()) {
+  <section class="state" aria-live="polite">Cargando registros…</section>
+} @else if (loadError()) {
+  <section class="state error" role="alert">
+    <p>No fue posible cargar la cartera.</p>
+    <button mat-stroked-button type="button" (click)="retry()">Reintentar</button>
+  </section>
+} @else if (records().length === 0) {
+  <section class="state empty">
+    <strong>{{ archived() ? 'No hay registros archivados.' : 'No encontramos registros.' }}</strong>
+    <p>
+      {{
+        archived()
+          ? 'Los registros que archives aparecerán aquí para consulta.'
+          : 'Crea un prospecto o ajusta los filtros de búsqueda.'
+      }}
+    </p>
+  </section>
+} @else {
+  <div class="desktop-table">
+    <table>
+      <thead>
+        <tr>
+          <th>Negocio</th>
+          <th>Etapa e interés</th>
+          <th>Último contacto</th>
+          <th>Próxima acción</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (record of records(); track record.id) {
+          <tr tabindex="0" (click)="open(record.id)" (keydown.enter)="open(record.id)">
+            <td>
+              <strong>{{ record.nombreNegocio }}</strong>
+              <span>{{ record.nombreEncargado || 'Encargado por identificar' }}</span>
+              @if (record.telefono) {
+                <small>{{ record.telefono }}</small>
+              }
+            </td>
+            <td>
+              <span class="stage" [class.client]="record.etapa === 'CLIENTE'">
+                {{ stage(record.etapa) }}
+              </span>
+              <small>Interés {{ interest(record.nivelInteres).toLowerCase() }}</small>
+            </td>
+            <td>
+              @if (record.ultimoContacto) {
+                <span>{{ contactDate(record.ultimoContacto.ocurridaEn) }}</span>
+                <small>{{ record.ultimoContacto.tipo }}</small>
+              } @else {
+                <span class="muted">Sin contacto</span>
+              }
+            </td>
+            <td>
+              @if (record.proximaAccion) {
+                <span>{{ record.proximaAccion.descripcion }}</span>
+                <small>{{ calendarDate(record.proximaAccion.fechaVencimiento) }}</small>
+              } @else {
+                <span class="muted">Sin acción pendiente</span>
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <div class="mobile-cards">
+    @for (record of records(); track record.id) {
+      <button type="button" class="record-card" (click)="open(record.id)">
+        <span class="card-heading">
+          <strong>{{ record.nombreNegocio }}</strong>
+          <span class="stage" [class.client]="record.etapa === 'CLIENTE'">
+            {{ stage(record.etapa) }}
+          </span>
+        </span>
+        <span>{{ record.nombreEncargado || 'Encargado por identificar' }}</span>
+        <span class="card-grid">
+          <span>
+            <small>Interés</small>
+            {{ interest(record.nivelInteres) }}
+          </span>
+          <span>
+            <small>Último contacto</small>
+            {{
+              record.ultimoContacto ? contactDate(record.ultimoContacto.ocurridaEn) : 'Sin contacto'
+            }}
+          </span>
+        </span>
+        <span class="next-action">
+          <small>Próxima acción</small>
+          @if (record.proximaAccion) {
+            {{ record.proximaAccion.descripcion }} ·
+            {{ calendarDate(record.proximaAccion.fechaVencimiento) }}
+          } @else {
+            Sin acción pendiente
+          }
+        </span>
+      </button>
+    }
+  </div>
+
+  <nav class="pagination" aria-label="Paginación de registros">
+    <button mat-stroked-button type="button" [disabled]="page() <= 1" (click)="previousPage()">
+      Anterior
+    </button>
+    <span>Página {{ page() }} de {{ totalPages() }} · {{ total() }} registros</span>
+    <button
+      mat-stroked-button
+      type="button"
+      [disabled]="page() >= totalPages()"
+      (click)="nextPage()"
+    >
+      Siguiente
+    </button>
+  </nav>
+}

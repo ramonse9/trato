@@ -9,6 +9,7 @@ import { CsrfGuard } from './auth/csrf.guard.js';
 import { SessionGuard } from './auth/session.guard.js';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { ProjectsModule } from './projects/projects.module.js';
+import { RecordsModule } from './records/records.module.js';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { ProjectsModule } from './projects/projects.module.js';
     ThrottlerModule.forRoot([{ name: 'default', ttl: minutes(1), limit: 100 }]),
     AuthModule,
     ProjectsModule,
+    RecordsModule,
   ],
   controllers: [AppController],
   providers: [

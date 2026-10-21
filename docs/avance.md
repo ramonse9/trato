@@ -6,7 +6,7 @@
 - [x] Etapa 2 — Modelo de datos y reglas comerciales
 - [x] Etapa 3 — Acceso privado
 - [x] Etapa 4 — Proyectos comerciales
-- [ ] Etapa 5 — Clientes y prospectos
+- [x] Etapa 5 — Clientes y prospectos
 - [ ] Etapa 6 — Seguimiento comercial
 - [ ] Etapa 7 — Pendientes y semáforo
 - [ ] Etapa 8 — Enlaces y pulido móvil
@@ -37,7 +37,9 @@ El cambio de proyecto reinicia formularios y aumenta una revisión de contexto p
 
 ## Etapa 5 — Clientes y prospectos
 
-CRUD de registros dentro del proyecto seleccionado, conversión de prospecto a cliente y búsqueda básica. Diseño responsive orientado a uso móvil.
+Flujo completo para crear, consultar y editar registros dentro del proyecto activo. Incluye alta mínima con solo el nombre, búsqueda por negocio, encargado o teléfono, filtros por etapa e interés, paginación en el backend, tabla de escritorio y tarjetas móviles.
+
+La ficha edita datos generales, etapa, interés y notas, y consulta historial y seguimientos existentes. Cambiar la etapa a `CLIENTE` conserva la misma ficha y relaciones. Los registros archivados quedan fuera del listado habitual, son de solo lectura y pueden restaurarse; no hay borrado definitivo. Verificado con 12 pruebas e2e sobre PostgreSQL limpio, incluidas paginación, filtros, conversión, preservación de historial, archivo y restauración.
 
 ## Etapa 6 — Seguimiento comercial
 

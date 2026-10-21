@@ -46,18 +46,20 @@ export const routes: Routes = [
             title: 'Hoy | Trato',
           },
           {
-            path: 'records',
+            path: 'records/new',
             loadComponent: () =>
-              import('./pages/project-section/project-section').then(
-                (module) => module.ProjectSection,
-              ),
-            data: {
-              eyebrow: 'Cartera del proyecto',
-              title: 'Prospectos y clientes',
-              emptyTitle: 'La cartera tendrá su propio espacio',
-              emptyDescription:
-                'La administración de prospectos y clientes se incorporará en la siguiente etapa.',
-            },
+              import('./pages/record-create/record-create').then((module) => module.RecordCreate),
+            title: 'Nuevo prospecto | Trato',
+          },
+          {
+            path: 'records/:recordId',
+            loadComponent: () =>
+              import('./pages/record-detail/record-detail').then((module) => module.RecordDetail),
+            title: 'Ficha comercial | Trato',
+          },
+          {
+            path: 'records',
+            loadComponent: () => import('./pages/records/records').then((module) => module.Records),
             title: 'Prospectos y clientes | Trato',
           },
           {

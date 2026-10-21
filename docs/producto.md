@@ -86,6 +86,16 @@ Las rutas de cartera llevan contexto explícito: `/api/projects/:projectId/recor
 - Crear, editar, archivar y restaurar siempre valida al propietario en NestJS. Archivar conserva los registros relacionados, retira el proyecto del selector y bloquea sus mutaciones en el backend hasta restaurarlo. Los proyectos archivados se muestran aparte y en modo de solo lectura.
 - No existe una vista agregada de registros comerciales entre proyectos. Las secciones aún pendientes mantienen la frontera del proyecto desde su ruta y contexto.
 
+## Prospectos y clientes
+
+- Un `RegistroComercial` sigue siendo la única ficha durante todo el ciclo. La etapa `CLIENTE` hace que se presente como cliente; no se copia ni se crea una segunda entidad y se conservan actividades, tareas y notas.
+- Crear un prospecto exige únicamente el nombre del negocio. Encargado, teléfono, correo, dirección, interés y notas se completan después si se conocen.
+- El listado siempre exige un proyecto en la ruta y se pagina en el backend con 20 elementos por defecto y un máximo de 50. Permite buscar por negocio, encargado o teléfono, y filtrar por etapa e interés.
+- Último contacto y próxima acción se calculan al consultar: el primero es la actividad más reciente y la segunda es la tarea pendiente con fecha más cercana. No se mantienen campos duplicados en el registro.
+- La ficha permite editar datos generales, etapa, interés y notas. También presenta el historial y los seguimientos existentes en modo de consulta; su captura y edición corresponden a la etapa 6.
+- Archivar un registro conserva toda su información y lo retira de la cartera habitual. Los archivados se consultan por separado, permanecen en modo de solo lectura y pueden restaurarse. No existe borrado definitivo en la interfaz ni en la API inicial.
+- Las respuestas del listado y de la ficha se aplican únicamente si siguen coincidiendo proyecto, revisión de contexto e identificador de registro. Cambiar de proyecto cancela las lecturas en curso y limpia filtros, formulario y resultados visibles.
+
 ## Principios de entrega
 
 - Cada etapa debe terminar con una parte funcional y verificable.
