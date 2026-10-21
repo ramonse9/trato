@@ -1,0 +1,107 @@
+:host {
+  display: block;
+  min-height: 100dvh;
+  background:
+    radial-gradient(circle at 85% 10%, rgba(33, 96, 73, 0.14), transparent 28rem),
+    #f7f5ef;
+  color: #17372d;
+}
+
+.topbar {
+  padding-inline: clamp(1rem, 5vw, 4rem);
+  background: transparent;
+  color: #17372d;
+}
+
+.brand {
+  font-size: 1.25rem;
+  font-weight: 750;
+  letter-spacing: -0.03em;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.private-label {
+  color: #49645b;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+main {
+  width: min(70rem, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: clamp(3rem, 8vw, 7rem) 0 4rem;
+}
+
+.hero {
+  max-width: 48rem;
+}
+
+.eyebrow {
+  margin: 1.5rem 0 0.5rem;
+  color: #527066;
+  font-size: 0.8rem;
+  font-weight: 750;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(2.5rem, 7vw, 5.6rem);
+  font-weight: 760;
+  letter-spacing: -0.055em;
+  line-height: 0.98;
+}
+
+.intro {
+  max-width: 42rem;
+  margin: 1.5rem 0;
+  color: #49645b;
+  font-size: clamp(1.05rem, 2vw, 1.25rem);
+  line-height: 1.65;
+}
+
+.stage-note {
+  margin: 0.65rem 0 0;
+  color: #687d76;
+  font-size: 0.8rem;
+}
+
+.summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-top: clamp(3rem, 8vw, 6rem);
+}
+
+mat-card {
+  background: rgba(255, 255, 255, 0.64);
+}
+
+mat-card-content {
+  padding-top: 1rem;
+  color: #567067;
+  line-height: 1.55;
+}
+
+footer {
+  width: min(70rem, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 1.5rem 0 2rem;
+  border-top: 1px solid rgba(23, 55, 45, 0.16);
+  color: #687d76;
+  font-size: 0.8rem;
+}
+
+@media (max-width: 760px) {
+  .summary {
+    grid-template-columns: 1fr;
+  }
+
+  .private-label {
+    font-size: 0.75rem;
+  }
+}

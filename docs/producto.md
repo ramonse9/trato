@@ -1,0 +1,54 @@
+# Decisiones de producto
+
+## Propósito
+
+Trato será una aplicación web privada para registrar y dar seguimiento a clientes y prospectos de distintos proyectos comerciales. Debe responder rápidamente qué ocurrió con cada prospecto y cuál es el siguiente paso, especialmente desde un teléfono después de una visita.
+
+## Usuario y alcance
+
+- En el inicio existe un único usuario propietario.
+- No hay registro público.
+- Cada proyecto comercial tiene una cartera completamente separada.
+- Clientes, prospectos, contactos, visitas y seguimientos pertenecen a un solo proyecto.
+- El backend aplicará el aislamiento por proyecto en todas las consultas y mutaciones; el frontend nunca será la barrera de seguridad.
+- La interfaz y los mensajes para el usuario estarán en español.
+- La zona horaria inicial es `America/Mazatlan`; las fechas se persistirán en UTC y se presentarán en esa zona.
+
+## Funciones previstas
+
+- Inicio de sesión privado.
+- Administración de proyectos comerciales.
+- Clientes y prospectos por proyecto.
+- Etapa comercial, nivel de interés y próxima acción.
+- Historial de contactos y visitas.
+- Semáforo de seguimiento.
+- Pendientes del proyecto seleccionado.
+- Enlaces a WhatsApp y Google Maps.
+
+## Fuera de alcance
+
+- Registro público.
+- Cobros.
+- Envío automático de mensajes.
+- Inteligencia artificial.
+- Servicios externos de pago.
+- Microservicios o infraestructura anticipada sin una necesidad comprobada.
+
+## Arquitectura y tecnología
+
+- Un repositorio npm con `apps/api` y `apps/web`.
+- API REST modular con NestJS 12.
+- Interfaz responsive con Angular 22 y Angular Material 22.
+- PostgreSQL 18 para persistencia y Prisma ORM 7 para acceso tipado.
+- Node.js 24 LTS y TypeScript 6 en modo estricto.
+- PostgreSQL local mediante Docker Compose.
+- La API expone sus rutas bajo `/api` y permite en desarrollo el origen configurado en `WEB_ORIGIN`.
+
+Las versiones se eligieron el 21 de octubre de 2026 consultando la documentación oficial: Angular 22 está en soporte activo y requiere Node.js 22.22.3, 24.15 o 26; NestJS 12 exige esas versiones para sus generadores; Prisma 7 es la línea estable recomendada para producción y PostgreSQL 18 es la versión actual soportada.
+
+## Principios de entrega
+
+- Cada etapa debe terminar con una parte funcional y verificable.
+- No se inicia una etapa posterior de forma automática.
+- Antes de cada nueva etapa se revisan este documento, `docs/avance.md` y el código existente.
+- Se prioriza una experiencia móvil clara, controles táctiles cómodos y accesibilidad básica.

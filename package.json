@@ -1,0 +1,28 @@
+{
+  "name": "trato",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Aplicación privada para seguimiento comercial por proyecto.",
+  "workspaces": ["apps/api", "apps/web"],
+  "engines": {
+    "node": ">=24.15.0 <25"
+  },
+  "packageManager": "npm@11.19.0",
+  "overrides": {
+    "@angular/build@22.2.3": {
+      "vite": "8.3.5"
+    },
+    "vite": "8.3.5"
+  },
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "dev:api": "npm run start:dev --workspace @trato/api",
+    "dev:web": "npm run start --workspace @trato/web",
+    "db:up": "docker compose up -d postgres",
+    "db:down": "docker compose down",
+    "prisma:generate": "npm run prisma:generate --workspace @trato/api",
+    "prisma:validate": "npm run prisma:validate --workspace @trato/api"
+  }
+}
