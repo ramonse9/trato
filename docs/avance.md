@@ -8,7 +8,7 @@
 - [x] Etapa 4 — Proyectos comerciales
 - [x] Etapa 5 — Clientes y prospectos
 - [x] Etapa 6 — Seguimiento comercial
-- [ ] Etapa 7 — Pendientes y semáforo
+- [x] Etapa 7 — Pendientes y semáforo
 - [ ] Etapa 8 — Enlaces y pulido móvil
 
 ## Etapa 1 — Base técnica
@@ -51,7 +51,11 @@ Las operaciones compuestas son transaccionales e idempotentes mediante UUID de s
 
 ## Etapa 7 — Pendientes y semáforo
 
-Vista de pendientes del proyecto seleccionado y reglas explícitas para estados verde, amarillo y rojo, calculadas en el backend.
+Semáforo calculado exclusivamente en el backend desde la tarea pendiente más cercana y el día de calendario de `America/Mazatlan`: rojo para vencidas, amarillo para hoy o los tres días siguientes, verde para fechas posteriores y gris sin tarea aplicable. El mismo estado se presenta con icono, texto y color en cartera, ficha y Hoy.
+
+La pantalla Hoy muestra únicamente tareas y métricas del proyecto seleccionado: vencidas, de hoy, de los próximos tres días, prospectos activos sin acción, prospectos activos, interés alto, clientes y total vencido. Permite abrir la ficha, completar y reprogramar usando los endpoints idempotentes existentes. Completadas, descartados y archivados quedan fuera; los clientes con pendientes sí participan.
+
+No se necesitó otra migración. Verificado aplicando las tres migraciones existentes desde cero y con 14 pruebas e2e sobre PostgreSQL limpio, además de pruebas unitarias para el cambio de día en Mazatlán, el límite inclusivo de tres días y el cruce de año.
 
 ## Etapa 8 — Enlaces y pulido móvil
 

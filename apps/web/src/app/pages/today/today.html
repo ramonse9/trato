@@ -1,0 +1,167 @@
+<header class="page-header">
+  <p class="eyebrow">Resumen del proyecto</p>
+  <h1>Hoy</h1>
+  <p>
+    Pendientes de <strong>{{ context.activeProject()?.nombre }}</strong> según la fecha de Mazatlán.
+  </p>
+</header>
+
+@if (loading()) {
+  <section class="state" aria-live="polite">Preparando los pendientes de hoy…</section>
+} @else if (loadError()) {
+  <section class="state error" role="alert">
+    <p>No fue posible cargar el resumen del proyecto.</p>
+    <button mat-stroked-button type="button" (click)="retry()">Reintentar</button>
+  </section>
+} @else if (dashboard(); as current) {
+  <section class="metrics" aria-label="Indicadores del proyecto">
+    <mat-card appearance="outlined">
+      <strong>{{ current.indicadores.prospectosActivos }}</strong>
+      <span>Prospectos activos</span>
+    </mat-card>
+    <mat-card appearance="outlined">
+      <strong>{{ current.indicadores.prospectosInteresAlto }}</strong>
+      <span>Interés alto</span>
+    </mat-card>
+    <mat-card appearance="outlined">
+      <strong>{{ current.indicadores.clientes }}</strong>
+      <span>Clientes</span>
+    </mat-card>
+    <mat-card appearance="outlined" [class.alert-metric]="current.indicadores.tareasVencidas > 0">
+      <strong>{{ current.indicadores.tareasVencidas }}</strong>
+      <span>Tareas vencidas</span>
+    </mat-card>
+  </section>
+
+  <section class="legend" aria-label="Reglas del semáforo">
+    <app-follow-up-status status="ROJO" />
+    <app-follow-up-status status="AMARILLO" />
+    <app-follow-up-status status="VERDE" />
+    <app-follow-up-status status="GRIS" />
+  </section>
+
+  @if (message()) {
+    <p class="success" role="status">{{ message() }}</p>
+  }
+  @if (errorMessage()) {
+    <p class="error action-error" role="alert">{{ errorMessage() }}</p>
+  }
+
+  <div class="task-sections">
+    @for (section of sections(); track section.key) {
+      <section class="task-section">
+        <header>
+          <div>
+            <h2>{{ section.title }}</h2>
+            <p>{{ section.description }}</p>
+          </div>
+          <span class="count">{{ section.tasks.length }}</span>
+        </header>
+
+        @if (section.tasks.length === 0) {
+          <p class="empty-row">{{ section.empty }}</p>
+        } @else {
+          <ul class="task-list">
+            @for (task of section.tasks; track task.id) {
+              <li>
+                <div class="task-main">
+                  <div>
+                    <app-follow-up-status [status]="task.semaforo" />
+                    <h3>{{ task.descripcion }}</h3>
+                    <a
+                      [routerLink]="[
+                        '/p',
+                        context.activeProject()?.id,
+                        'records',
+                        task.registro.id,
+                      ]"
+                    >
+                      {{ task.registro.nombreNegocio }}
+                    </a>
+                    <p>{{ taskType(task.tipo) }} · {{ calendarDate(task.fechaVencimiento) }}</p>
+                  </div>
+                  <div class="task-actions">
+                    <button
+                      mat-stroked-button
+                      type="button"
+                      [disabled]="busy()"
+                      (click)="startReschedule(task)"
+                    >
+                      Reprogramar
+                    </button>
+                    <button
+                      mat-flat-button
+                      type="button"
+                      [disabled]="busy()"
+                      (click)="startComplete(task)"
+                    >
+                      Completar
+                    </button>
+                  </div>
+                </div>
+
+                @if (actionTask()?.id === task.id && actionMode() === 'reschedule') {
+                  <form class="quick-form" [formGroup]="rescheduleForm" (ngSubmit)="reschedule()">
+                    <mat-form-field appearance="outline">
+                      <mat-label>Nueva fecha</mat-label>
+                      <input matInput type="date" formControlName="fechaVencimiento" />
+                    </mat-form-field>
+                    <div>
+                      <button mat-button type="button" (click)="cancelAction()">Cancelar</button>
+                      <button mat-flat-button type="submit" [disabled]="busy()">
+                        {{ busy() ? 'Guardando…' : 'Guardar fecha' }}
+                      </button>
+                    </div>
+                  </form>
+                }
+
+                @if (actionTask()?.id === task.id && actionMode() === 'complete') {
+                  <form class="quick-form" [formGroup]="completeForm" (ngSubmit)="complete()">
+                    <mat-form-field appearance="outline">
+                      <mat-label>Resultado (opcional)</mat-label>
+                      <textarea
+                        matInput
+                        rows="2"
+                        maxlength="4000"
+                        formControlName="resultado"
+                      ></textarea>
+                    </mat-form-field>
+                    <div>
+                      <button mat-button type="button" (click)="cancelAction()">Cancelar</button>
+                      <button mat-flat-button type="submit" [disabled]="busy()">
+                        {{ busy() ? 'Completando…' : 'Confirmar' }}
+                      </button>
+                    </div>
+                  </form>
+                }
+              </li>
+            }
+          </ul>
+        }
+      </section>
+    }
+  </div>
+
+  <section class="without-task">
+    <header>
+      <div>
+        <h2>Prospectos activos sin próxima acción</h2>
+        <p>Los clientes y descartados no aparecen en esta advertencia.</p>
+      </div>
+      <span class="count">{{ current.prospectosSinProximaAccion.length }}</span>
+    </header>
+    @if (current.prospectosSinProximaAccion.length === 0) {
+      <p class="empty-row">Todos los prospectos activos tienen seguimiento.</p>
+    } @else {
+      <div class="prospect-grid">
+        @for (record of current.prospectosSinProximaAccion; track record.id) {
+          <a [routerLink]="['/p', context.activeProject()?.id, 'records', record.id]">
+            <strong>{{ record.nombreNegocio }}</strong>
+            <span>{{ record.nombreEncargado || 'Encargado por identificar' }}</span>
+            <app-follow-up-status status="GRIS" />
+          </a>
+        }
+      </div>
+    }
+  </section>
+}

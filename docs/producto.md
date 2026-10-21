@@ -107,6 +107,16 @@ Las rutas de cartera llevan contexto explícito: `/api/projects/:projectId/recor
 - Cada formulario de historial o seguimiento envía un UUID de solicitud. La API lo registra en PostgreSQL dentro de la misma transacción que la operación; un reenvío con el mismo UUID devuelve los recursos ya creados sin duplicarlos.
 - Las mutaciones de actividades y tareas reutilizan la cadena de autorización usuario–proyecto–registro y los identificadores anidados. Los registros y proyectos archivados permanecen en modo de solo lectura.
 
+## Semáforo y pantalla Hoy
+
+- El backend es la fuente única del semáforo. Usa exclusivamente la tarea `PENDIENTE` más próxima: rojo si venció antes de hoy, amarillo si vence hoy o en los tres días de calendario siguientes, verde si vence después y gris si no existe una pendiente aplicable.
+- “Hoy” se calcula en `America/Mazatlan` y se expresa como `YYYY-MM-DD`. Los límites se comparan como fechas de calendario, sin convertir el vencimiento a la zona horaria del navegador.
+- Una tarea completada no participa. Los registros archivados o en etapa `DESCARTADO` reciben estado gris y no aparecen en los pendientes habituales. Los clientes sí participan cuando tienen tareas pendientes.
+- La API devuelve el estado calculado al listado y a la ficha. Angular lo presenta mediante un único componente con icono, texto y color; ninguna pantalla vuelve a calcular las reglas.
+- La pantalla Hoy exige un proyecto activo y muestra todas sus tareas vencidas, de hoy y de los tres días siguientes. También muestra prospectos activos sin tareas pendientes e indicadores de prospectos activos, interés alto, clientes y tareas vencidas.
+- Completar o reprogramar desde Hoy usa las mismas operaciones autorizadas, transaccionales e idempotentes de la ficha. Una respuesta tardía se ignora si el proyecto activo cambió.
+- Esta etapa no requiere migración: el estado se deriva de tareas y registros existentes y no se persiste como un dato duplicado.
+
 ## Principios de entrega
 
 - Cada etapa debe terminar con una parte funcional y verificable.

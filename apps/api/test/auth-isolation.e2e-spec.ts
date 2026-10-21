@@ -6,6 +6,7 @@ import { AppModule } from '../src/app.module.js';
 import { configureApp } from '../src/app.setup.js';
 import { hashPassword } from '../src/auth/password.js';
 import { PrismaService } from '../src/prisma/prisma.service.js';
+import { addCalendarDays } from '../src/records/follow-up-status.js';
 
 const databaseUrl = process.env.TEST_DATABASE_URL;
 const describeDatabase = databaseUrl ? describe : describe.skip;
@@ -158,6 +159,7 @@ describeDatabase('Acceso privado y aislamiento (e2e)', () => {
 
   it('no permite acceder a proyectos de otro usuario', async () => {
     await agent.get(`/api/projects/${projectB}/records`).expect(404);
+    await agent.get(`/api/projects/${projectB}/today`).expect(404);
   });
 
   it('crea, lista y edita únicamente proyectos propios', async () => {
@@ -540,6 +542,244 @@ describeDatabase('Acceso privado y aislamiento (e2e)', () => {
         fechaVencimiento: '2026-02-31',
       })
       .expect(400);
+  });
+
+  it('aplica el semáforo y la pantalla Hoy con límites y exclusiones consistentes', async () => {
+    const owner = await prisma.proyectoComercial.findUniqueOrThrow({
+      where: { id: projectA },
+      select: { usuarioId: true },
+    });
+    const project = await prisma.proyectoComercial.create({
+      data: {
+        usuarioId: owner.usuarioId,
+        nombre: 'Proyecto exclusivo del semáforo',
+      },
+    });
+    const initialDashboard = await agent
+      .get(`/api/projects/${project.id}/today`)
+      .expect(200);
+    const today = initialDashboard.body.fechaHoy as string;
+    const yesterday = addCalendarDays(today, -1);
+    const thirdDay = addCalendarDays(today, 3);
+    const fourthDay = addCalendarDays(today, 4);
+
+    const records = await Promise.all([
+      prisma.registroComercial.create({
+        data: {
+          proyectoId: project.id,
+          nombreNegocio: 'Vencido activo',
+          etapa: 'CONTACTADO',
+          nivelInteres: 'ALTO',
+        },
+      }),
+      prisma.registroComercial.create({
+        data: {
+          proyectoId: project.id,
+          nombreNegocio: 'Vence hoy',
+          etapa: 'DEMO_PENDIENTE',
+        },
+      }),
+      prisma.registroComercial.create({
+        data: {
+          proyectoId: project.id,
+          nombreNegocio: 'Seguimiento verde',
+          etapa: 'CONTACTADO',
+          nivelInteres: 'ALTO',
+        },
+      }),
+      prisma.registroComercial.create({
+        data: {
+          proyectoId: project.id,
+          nombreNegocio: 'Sin próxima acción',
+          etapa: 'POR_CONTACTAR',
+          nivelInteres: 'ALTO',
+        },
+      }),
+      prisma.registroComercial.create({
+        data: {
+          proyectoId: project.id,
+          nombreNegocio: 'Cliente con seguimiento',
+          etapa: 'CLIENTE',
+        },
+      }),
+      prisma.registroComercial.create({
+        data: {
+          proyectoId: project.id,
+          nombreNegocio: 'Descartado vencido',
+          etapa: 'DESCARTADO',
+        },
+      }),
+      prisma.registroComercial.create({
+        data: {
+          proyectoId: project.id,
+          nombreNegocio: 'Archivado vencido',
+          etapa: 'CONTACTADO',
+          archivadoEn: new Date(),
+        },
+      }),
+    ]);
+    const [overdue, dueToday, green, withoutNext, client, discarded, archived] =
+      records;
+    const calendar = (value: string) => new Date(`${value}T00:00:00.000Z`);
+    const createdTasks = await Promise.all([
+      prisma.tareaSeguimiento.create({
+        data: {
+          proyectoId: project.id,
+          registroId: overdue.id,
+          descripcion: 'Tarea vencida',
+          tipo: 'LLAMADA',
+          fechaVencimiento: calendar(yesterday),
+        },
+      }),
+      prisma.tareaSeguimiento.create({
+        data: {
+          proyectoId: project.id,
+          registroId: dueToday.id,
+          descripcion: 'Tarea de hoy',
+          tipo: 'WHATSAPP',
+          fechaVencimiento: calendar(today),
+        },
+      }),
+      prisma.tareaSeguimiento.create({
+        data: {
+          proyectoId: project.id,
+          registroId: green.id,
+          descripcion: 'Tarea posterior',
+          tipo: 'VISITA',
+          fechaVencimiento: calendar(fourthDay),
+        },
+      }),
+      prisma.tareaSeguimiento.create({
+        data: {
+          proyectoId: project.id,
+          registroId: withoutNext.id,
+          descripcion: 'Tarea ya completada',
+          tipo: 'OTRO',
+          fechaVencimiento: calendar(yesterday),
+          estado: 'COMPLETADA',
+          completadaEn: new Date(),
+        },
+      }),
+      prisma.tareaSeguimiento.create({
+        data: {
+          proyectoId: project.id,
+          registroId: client.id,
+          descripcion: 'Seguimiento de cliente',
+          tipo: 'LLAMADA',
+          fechaVencimiento: calendar(thirdDay),
+        },
+      }),
+      prisma.tareaSeguimiento.create({
+        data: {
+          proyectoId: project.id,
+          registroId: discarded.id,
+          descripcion: 'No debe aparecer por descarte',
+          tipo: 'OTRO',
+          fechaVencimiento: calendar(yesterday),
+        },
+      }),
+      prisma.tareaSeguimiento.create({
+        data: {
+          proyectoId: project.id,
+          registroId: archived.id,
+          descripcion: 'No debe aparecer por archivo',
+          tipo: 'OTRO',
+          fechaVencimiento: calendar(yesterday),
+        },
+      }),
+    ]);
+    const [overdueTask, todayTask] = createdTasks;
+    await prisma.tareaSeguimiento.create({
+      data: {
+        proyectoId: project.id,
+        registroId: overdue.id,
+        descripcion: 'Tarea futura del mismo prospecto',
+        tipo: 'VISITA',
+        fechaVencimiento: calendar(fourthDay),
+      },
+    });
+
+    const dashboard = await agent
+      .get(`/api/projects/${project.id}/today`)
+      .expect(200);
+    expect(dashboard.body.indicadores).toEqual({
+      prospectosActivos: 4,
+      prospectosInteresAlto: 3,
+      clientes: 1,
+      tareasVencidas: 1,
+    });
+    expect(
+      dashboard.body.vencidas.map((task: { id: string }) => task.id),
+    ).toEqual([overdueTask.id]);
+    expect(dashboard.body.hoy.map((task: { id: string }) => task.id)).toEqual([
+      todayTask.id,
+    ]);
+    expect(
+      dashboard.body.proximosTresDias.map(
+        (task: { registro: { id: string } }) => task.registro.id,
+      ),
+    ).toEqual([client.id]);
+    expect(
+      dashboard.body.prospectosSinProximaAccion.map(
+        (record: { id: string }) => record.id,
+      ),
+    ).toEqual([withoutNext.id]);
+
+    const list = await agent
+      .get(`/api/projects/${project.id}/records?pageSize=50`)
+      .expect(200);
+    const statusByRecord = Object.fromEntries(
+      list.body.items.map((record: { id: string; semaforo: string }) => [
+        record.id,
+        record.semaforo,
+      ]),
+    );
+    expect(statusByRecord[overdue.id]).toBe('ROJO');
+    expect(statusByRecord[dueToday.id]).toBe('AMARILLO');
+    expect(statusByRecord[client.id]).toBe('AMARILLO');
+    expect(statusByRecord[green.id]).toBe('VERDE');
+    expect(statusByRecord[withoutNext.id]).toBe('GRIS');
+    expect(statusByRecord[discarded.id]).toBe('GRIS');
+    const greenDetail = await agent
+      .get(`/api/projects/${project.id}/records/${green.id}`)
+      .expect(200);
+    expect(greenDetail.body.semaforo).toBe('VERDE');
+    const archivedList = await agent
+      .get(`/api/projects/${project.id}/records?archived=true`)
+      .expect(200);
+    expect(archivedList.body.items[0].semaforo).toBe('GRIS');
+
+    await agent
+      .patch(
+        `/api/projects/${project.id}/records/${dueToday.id}/tasks/${todayTask.id}`,
+      )
+      .set('Origin', 'http://localhost:4200')
+      .set('X-CSRF-Token', csrfToken)
+      .send({
+        solicitudId: '71000000-0000-4000-8000-000000000001',
+        fechaVencimiento: fourthDay,
+      })
+      .expect(200);
+    await agent
+      .post(
+        `/api/projects/${project.id}/records/${overdue.id}/tasks/${overdueTask.id}/complete`,
+      )
+      .set('Origin', 'http://localhost:4200')
+      .set('X-CSRF-Token', csrfToken)
+      .send({ solicitudId: '71000000-0000-4000-8000-000000000002' })
+      .expect(201);
+
+    const refreshed = await agent
+      .get(`/api/projects/${project.id}/today`)
+      .expect(200);
+    expect(refreshed.body.vencidas).toHaveLength(0);
+    expect(refreshed.body.hoy).toHaveLength(0);
+    expect(refreshed.body.indicadores.tareasVencidas).toBe(0);
+    expect(
+      refreshed.body.prospectosSinProximaAccion.map(
+        (record: { id: string }) => record.id,
+      ),
+    ).toEqual([withoutNext.id]);
   });
 
   it('no mezcla actividades ni tareas entre proyectos', async () => {

@@ -9,6 +9,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { firstValueFrom, map, Subscription } from 'rxjs';
+import { FollowUpStatusBadge } from '../../components/follow-up-status/follow-up-status';
 import { ProjectContextService } from '../../core/project-context.service';
 import { RecordsService } from '../../core/records.service';
 import {
@@ -31,6 +32,7 @@ import { FollowUpPanel } from './follow-up-panel';
     MatInputModule,
     MatSelectModule,
     FollowUpPanel,
+    FollowUpStatusBadge,
     RouterLink,
   ],
   templateUrl: './record-detail.html',

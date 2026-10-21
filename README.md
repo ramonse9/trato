@@ -117,6 +117,19 @@ Las tareas pendientes se pueden editar, reprogramar o completar. Al completarlas
 
 Las reprogramaciones, finalizaciones y cambios de etapa aparecen como notas automáticas del historial. Los formularios bloquean el doble toque y la API usa identificadores idempotentes para que un reenvío de red tampoco cree duplicados.
 
+## Hoy y semáforo
+
+La sección **Hoy** resume exclusivamente el proyecto activo. Presenta indicadores, tareas vencidas, tareas de hoy, tareas de los próximos tres días y prospectos activos sin próxima acción. Desde cada pendiente puedes abrir la ficha, completar la tarea o cambiar su fecha.
+
+El semáforo usa la tarea pendiente más próxima y la fecha de `America/Mazatlan`:
+
+- **Vencido (!):** fecha anterior a hoy.
+- **Próximo (◷):** hoy o cualquiera de los siguientes tres días de calendario.
+- **Al día (✓):** después de ese período.
+- **Sin pendientes (—):** no existe una tarea pendiente aplicable.
+
+Las tareas completadas no cuentan. Los descartados y archivados quedan fuera de los pendientes habituales; los clientes con tareas sí aparecen.
+
 ## Sesiones en producción
 
 Sirve la web y la API bajo el mismo sitio HTTPS, configura `NODE_ENV=production` y establece `WEB_ORIGIN` con el origen público exacto (esquema, host y puerto). En producción la cookie lleva `Secure` y el prefijo `__Host-`. `SESSION_TTL_DAYS` controla su vigencia (7 días por defecto; máximo 30). Los tokens de sesión se almacenan con hash en PostgreSQL y cerrar sesión los revoca.

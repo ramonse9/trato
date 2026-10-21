@@ -6,6 +6,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { Router, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
+import { FollowUpStatusBadge } from '../../components/follow-up-status/follow-up-status';
 import { ProjectContextService } from '../../core/project-context.service';
 import { RecordsService } from '../../core/records.service';
 import {
@@ -27,6 +28,7 @@ import {
     MatInputModule,
     MatSelectModule,
     RouterLink,
+    FollowUpStatusBadge,
   ],
   templateUrl: './records.html',
   styleUrl: './records.scss',

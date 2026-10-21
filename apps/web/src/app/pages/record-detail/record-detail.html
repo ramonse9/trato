@@ -21,6 +21,7 @@
         @if (current.archivadoEn) {
           <span class="archived-badge">Solo lectura</span>
         }
+        <app-follow-up-status [status]="current.semaforo" />
       </div>
     </div>
     @if (current.archivadoEn) {

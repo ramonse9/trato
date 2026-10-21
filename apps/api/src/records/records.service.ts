@@ -17,6 +17,10 @@ import {
   CreateTaskDto,
   UpdateTaskDto,
 } from './dto/follow-up.dto.js';
+import {
+  calculateFollowUpStatus,
+  calendarDateValue as serializeCalendarDate,
+} from './follow-up-status.js';
 
 const recordSelect = {
   id: true,
@@ -100,18 +104,21 @@ export class RecordsService {
     ]);
 
     return {
-      items: records.map(({ actividades, tareasSeguimiento, ...record }) => ({
-        ...record,
-        ultimoContacto: actividades[0] ?? null,
-        proximaAccion: tareasSeguimiento[0]
-          ? {
-              ...tareasSeguimiento[0],
-              fechaVencimiento: this.calendarDate(
-                tareasSeguimiento[0].fechaVencimiento,
-              ),
-            }
-          : null,
-      })),
+      items: records.map(({ actividades, tareasSeguimiento, ...record }) => {
+        const nextTask = tareasSeguimiento[0];
+        const nextDate = nextTask
+          ? serializeCalendarDate(nextTask.fechaVencimiento)
+          : null;
+        const excluded = record.archivadoEn || record.etapa === 'DESCARTADO';
+        return {
+          ...record,
+          ultimoContacto: actividades[0] ?? null,
+          proximaAccion: nextTask
+            ? { ...nextTask, fechaVencimiento: nextDate }
+            : null,
+          semaforo: calculateFollowUpStatus(excluded ? null : nextDate),
+        };
+      }),
       page: query.page,
       pageSize: query.pageSize,
       total,
@@ -152,12 +159,23 @@ export class RecordsService {
       },
     });
 
+    const tasks = record.tareasSeguimiento.map((task) => ({
+      ...task,
+      fechaVencimiento: serializeCalendarDate(task.fechaVencimiento),
+    }));
+    const nextTask = tasks
+      .filter((task) => task.estado === EstadoTarea.PENDIENTE)
+      .sort((left, right) =>
+        left.fechaVencimiento.localeCompare(right.fechaVencimiento),
+      )[0];
     return {
       ...record,
-      tareasSeguimiento: record.tareasSeguimiento.map((task) => ({
-        ...task,
-        fechaVencimiento: this.calendarDate(task.fechaVencimiento),
-      })),
+      tareasSeguimiento: tasks,
+      semaforo: calculateFollowUpStatus(
+        record.archivadoEn || record.etapa === 'DESCARTADO'
+          ? null
+          : (nextTask?.fechaVencimiento ?? null),
+      ),
     };
   }
 
@@ -359,7 +377,7 @@ export class RecordsService {
     if (current.estado === EstadoTarea.COMPLETADA) {
       throw new ConflictException('Una tarea completada no puede modificarse.');
     }
-    const oldDate = this.calendarDate(current.fechaVencimiento);
+    const oldDate = serializeCalendarDate(current.fechaVencimiento);
     const newDate = dto.fechaVencimiento ?? oldDate;
     const reprogrammed = oldDate !== newDate;
     const activityId = reprogrammed ? randomUUID() : null;
@@ -548,13 +566,9 @@ export class RecordsService {
     return this.access.requireTask(userId, projectId, recordId, taskId);
   }
 
-  private calendarDate(date: Date): string {
-    return date.toISOString().slice(0, 10);
-  }
-
   private calendarDateValue(value: string): Date {
     const date = new Date(`${value}T00:00:00.000Z`);
-    if (Number.isNaN(date.getTime()) || this.calendarDate(date) !== value) {
+    if (Number.isNaN(date.getTime()) || serializeCalendarDate(date) !== value) {
       throw new BadRequestException('La fecha de vencimiento no es válida.');
     }
     return date;
@@ -658,7 +672,7 @@ export class RecordsService {
     });
     return {
       ...task,
-      fechaVencimiento: this.calendarDate(task.fechaVencimiento),
+      fechaVencimiento: serializeCalendarDate(task.fechaVencimiento),
     };
   }
 }

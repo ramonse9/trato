@@ -107,8 +107,9 @@
               }
             </td>
             <td>
+              <app-follow-up-status [status]="record.semaforo" />
               @if (record.proximaAccion) {
-                <span>{{ record.proximaAccion.descripcion }}</span>
+                <span class="action-description">{{ record.proximaAccion.descripcion }}</span>
                 <small>{{ calendarDate(record.proximaAccion.fechaVencimiento) }}</small>
               } @else {
                 <span class="muted">Sin acción pendiente</span>
@@ -143,7 +144,10 @@
           </span>
         </span>
         <span class="next-action">
-          <small>Próxima acción</small>
+          <span class="next-heading">
+            <small>Próxima acción</small>
+            <app-follow-up-status [status]="record.semaforo" />
+          </span>
           @if (record.proximaAccion) {
             {{ record.proximaAccion.descripcion }} ·
             {{ calendarDate(record.proximaAccion.fechaVencimiento) }}

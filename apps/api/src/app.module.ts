@@ -10,6 +10,7 @@ import { SessionGuard } from './auth/session.guard.js';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { ProjectsModule } from './projects/projects.module.js';
 import { RecordsModule } from './records/records.module.js';
+import { TodayModule } from './today/today.module.js';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { RecordsModule } from './records/records.module.js';
     AuthModule,
     ProjectsModule,
     RecordsModule,
+    TodayModule,
   ],
   controllers: [AppController],
   providers: [

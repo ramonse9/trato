@@ -12,6 +12,7 @@ export type CommercialStage =
 export type InterestLevel = 'SIN_EVALUAR' | 'BAJO' | 'MEDIO' | 'ALTO';
 export type ActivityType = 'LLAMADA' | 'WHATSAPP' | 'VISITA' | 'DEMO' | 'NOTA';
 export type TaskType = 'LLAMADA' | 'WHATSAPP' | 'VISITA' | 'DEMO' | 'ENVIAR_PROPUESTA' | 'OTRO';
+export type FollowUpStatus = 'ROJO' | 'AMARILLO' | 'VERDE' | 'GRIS';
 
 export const COMMERCIAL_STAGES: ReadonlyArray<{
   value: CommercialStage;
@@ -68,8 +69,8 @@ export interface CommercialRecordSummary {
   archivadoEn: string | null;
   ultimoContacto: LastContact | null;
   proximaAccion: NextAction | null;
+  semaforo: FollowUpStatus;
 }
-
 export interface RecordActivity extends LastContact {
   detalle: string;
   resultado: string | null;

@@ -32,17 +32,7 @@ export const routes: Routes = [
           { path: '', pathMatch: 'full', redirectTo: 'today' },
           {
             path: 'today',
-            loadComponent: () =>
-              import('./pages/project-section/project-section').then(
-                (module) => module.ProjectSection,
-              ),
-            data: {
-              eyebrow: 'Resumen del proyecto',
-              title: 'Hoy',
-              emptyTitle: 'Todo listo para organizar el día',
-              emptyDescription:
-                'Los pendientes y el semáforo aparecerán aquí en una etapa posterior.',
-            },
+            loadComponent: () => import('./pages/today/today').then((module) => module.Today),
             title: 'Hoy | Trato',
           },
           {
