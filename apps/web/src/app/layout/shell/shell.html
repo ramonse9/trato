@@ -1,0 +1,66 @@
+<div class="app-shell">
+  <mat-toolbar class="topbar">
+    <a class="brand" routerLink="/" aria-label="Ir al inicio de Trato">Trato</a>
+
+    <div class="project-status" aria-live="polite">
+      <span>Proyecto activo</span>
+      <strong>{{ context.activeProject()?.nombre || 'Sin seleccionar' }}</strong>
+    </div>
+
+    <span class="spacer"></span>
+    <span class="user-name">{{ auth.user()?.nombre }}</span>
+    <button mat-button type="button" (click)="logout()">Salir</button>
+  </mat-toolbar>
+
+  <div class="workspace-bar">
+    <mat-form-field appearance="outline" subscriptSizing="dynamic">
+      <mat-label>Cambiar proyecto</mat-label>
+      <mat-select
+        [value]="context.activeProject()?.id ?? null"
+        [disabled]="context.loading() || !context.hasProjects()"
+        (valueChange)="changeProject($event)"
+      >
+        @for (project of context.projects(); track project.id) {
+          <mat-option [value]="project.id">{{ project.nombre }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+    <a mat-stroked-button routerLink="/projects">Administrar proyectos</a>
+  </div>
+
+  <div class="workspace">
+    <nav class="side-nav" aria-label="Navegación principal">
+      @if (projectId(); as activeProjectId) {
+        @for (item of navigation; track item.path) {
+          <a
+            [routerLink]="['/p', activeProjectId, item.path]"
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: true }"
+          >
+            {{ item.label }}
+          </a>
+        }
+      } @else {
+        <p>Selecciona o crea un proyecto para comenzar.</p>
+      }
+    </nav>
+
+    <main class="content" tabindex="-1">
+      <router-outlet />
+    </main>
+  </div>
+
+  @if (projectId(); as activeProjectId) {
+    <nav class="bottom-nav" aria-label="Navegación principal móvil">
+      @for (item of navigation; track item.path) {
+        <a
+          [routerLink]="['/p', activeProjectId, item.path]"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+        >
+          {{ item.compactLabel }}
+        </a>
+      }
+    </nav>
+  }
+</div>

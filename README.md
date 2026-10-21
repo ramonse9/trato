@@ -85,7 +85,7 @@ TEST_DATABASE_URL=postgresql://TU_USUARIO@localhost:5432/trato_e2e npm run test:
 dropdb trato_e2e
 ```
 
-La suite e2e limpia por completo la base indicada en `TEST_DATABASE_URL` antes de preparar sus casos. Comprueba acceso anónimo, aislamiento entre usuarios y proyectos, registros cruzados, actividades, tareas, CSRF, limitación de intentos y cierre de sesión.
+La suite e2e limpia por completo la base indicada en `TEST_DATABASE_URL` antes de preparar sus casos. Comprueba acceso anónimo, aislamiento entre usuarios y proyectos, registros cruzados, actividades, tareas, CSRF, limitación de intentos, cierre de sesión y el ciclo de creación, edición, archivo y restauración de proyectos.
 
 La prueba integral del endpoint requiere que PostgreSQL esté activo:
 
@@ -94,6 +94,12 @@ curl http://localhost:3000/api/health
 ```
 
 Los vencimientos de seguimiento son fechas de calendario (`YYYY-MM-DD`) sin hora. Las actividades del historial sí usan marcas de tiempo. La próxima acción se obtiene ordenando las tareas pendientes por la fecha de vencimiento más cercana; no existe una agenda global.
+
+## Navegación por proyecto
+
+Después de iniciar sesión, Trato valida el último proyecto seleccionado y abre `/p/:projectId/today`. La barra superior permite cambiar de proyecto y mantiene visible el contexto activo; en teléfono, la navegación principal aparece en la parte inferior. Los proyectos archivados se administran desde **Administrar proyectos**, no aparecen en el selector y permanecen en modo de solo lectura hasta restaurarlos.
+
+El identificador recordado en el navegador no concede acceso: cada ruta y operación vuelve a comprobar en NestJS que el proyecto pertenezca al usuario autenticado.
 
 ## Sesiones en producción
 

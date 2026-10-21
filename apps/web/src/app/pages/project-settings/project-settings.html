@@ -1,0 +1,65 @@
+<header class="page-header">
+  <p class="eyebrow">Proyecto activo</p>
+  <h1>Configuración</h1>
+  <p>Actualiza la identidad del proyecto o archívalo sin perder su información.</p>
+</header>
+
+<mat-card appearance="outlined" class="settings-card">
+  <mat-card-header>
+    <mat-card-title>Datos del proyecto</mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <form (ngSubmit)="save()" [formGroup]="form">
+      <mat-form-field appearance="outline">
+        <mat-label>Nombre</mat-label>
+        <input matInput formControlName="nombre" maxlength="160" />
+        @if (form.controls.nombre.touched && form.controls.nombre.invalid) {
+          <mat-error>Escribe un nombre de hasta 160 caracteres.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Descripción</mat-label>
+        <textarea matInput formControlName="descripcion" maxlength="2000" rows="5"></textarea>
+        <mat-hint align="end">{{ form.controls.descripcion.value.length }}/2000</mat-hint>
+      </mat-form-field>
+
+      @if (message()) {
+        <p class="success" role="status">{{ message() }}</p>
+      }
+      @if (errorMessage()) {
+        <p class="error" role="alert">{{ errorMessage() }}</p>
+      }
+
+      <button mat-flat-button type="submit" [disabled]="saving()">
+        {{ saving() ? 'Guardando…' : 'Guardar cambios' }}
+      </button>
+    </form>
+  </mat-card-content>
+</mat-card>
+
+<section class="danger-zone" aria-labelledby="archive-title">
+  <div>
+    <h2 id="archive-title">Archivar proyecto</h2>
+    <p>
+      Se conservarán sus registros y seguimientos. Mientras esté archivado será de solo lectura y no
+      aparecerá como proyecto activo.
+    </p>
+  </div>
+
+  @if (!confirmArchive()) {
+    <button mat-stroked-button type="button" (click)="confirmArchive.set(true)">
+      Archivar proyecto
+    </button>
+  } @else {
+    <div class="confirmation" role="group" aria-label="Confirmar archivo del proyecto">
+      <strong>¿Archivar {{ context.activeProject()?.nombre }}?</strong>
+      <div>
+        <button mat-button type="button" (click)="confirmArchive.set(false)">Cancelar</button>
+        <button mat-flat-button type="button" [disabled]="archiving()" (click)="archive()">
+          {{ archiving() ? 'Archivando…' : 'Sí, archivar' }}
+        </button>
+      </div>
+    </div>
+  }
+</section>

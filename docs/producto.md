@@ -77,6 +77,15 @@ El seed usa información ficticia, no incluye contraseñas ni tokens, y se detie
 
 Las rutas de cartera llevan contexto explícito: `/api/projects/:projectId/records/:recordId`. Para cada consulta o cambio, la API comprueba en una sola cadena de pertenencia el usuario, proyecto y registro; actividades y tareas comprueban también sus propios identificadores. Una combinación ajena o cruzada responde como recurso no encontrado. Las llaves foráneas compuestas mantienen además la misma regla dentro de PostgreSQL.
 
+## Proyectos y navegación
+
+- El área privada usa un contexto explícito de proyecto también en la URL: `/p/:projectId/...`. Sus secciones principales son Hoy, Prospectos y clientes, Seguimientos y Configuración del proyecto.
+- El proyecto activo se muestra en la barra superior y solo los proyectos propios no archivados aparecen en el selector operativo.
+- El último proyecto elegido se recuerda en `localStorage` con una clave separada por usuario. Al abrir la aplicación, el identificador se valida contra la lista activa entregada por la API; un proyecto ajeno, eliminado o archivado nunca se recupera como activo.
+- Cambiar de proyecto incrementa una revisión de contexto. Los formularios se reinician al cambiar esa revisión y las operaciones asíncronas capturan proyecto y revisión antes de comenzar; una respuesta tardía se ignora si el contexto ya cambió.
+- Crear, editar, archivar y restaurar siempre valida al propietario en NestJS. Archivar conserva los registros relacionados, retira el proyecto del selector y bloquea sus mutaciones en el backend hasta restaurarlo. Los proyectos archivados se muestran aparte y en modo de solo lectura.
+- No existe una vista agregada de registros comerciales entre proyectos. Las secciones aún pendientes mantienen la frontera del proyecto desde su ruta y contexto.
+
 ## Principios de entrega
 
 - Cada etapa debe terminar con una parte funcional y verificable.

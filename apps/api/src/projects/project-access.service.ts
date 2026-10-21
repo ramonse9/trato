@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
 
 @Injectable()
@@ -10,6 +14,16 @@ export class ProjectAccessService {
       where: { id: projectId, usuarioId: userId },
     });
     if (!project) throw this.notFound();
+    return project;
+  }
+
+  async requireActiveProject(userId: string, projectId: string) {
+    const project = await this.requireProject(userId, projectId);
+    if (project.archivadoEn) {
+      throw new ConflictException(
+        'El proyecto está archivado. Restáuralo antes de modificarlo.',
+      );
+    }
     return project;
   }
 

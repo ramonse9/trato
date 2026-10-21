@@ -1,0 +1,127 @@
+<header class="page-header">
+  <p class="eyebrow">Administración</p>
+  <h1>Proyectos comerciales</h1>
+  <p>Cada proyecto conserva una cartera independiente.</p>
+</header>
+
+@if (context.loading()) {
+  <section class="state" aria-live="polite">Cargando proyectos…</section>
+} @else if (context.loadError()) {
+  <section class="state error" role="alert">
+    <p>No fue posible cargar los proyectos.</p>
+    <button mat-stroked-button type="button" (click)="retry()">Reintentar</button>
+  </section>
+} @else {
+  <section class="create-section" aria-labelledby="create-title">
+    <div>
+      <p class="eyebrow">Nuevo</p>
+      <h2 id="create-title">Crear proyecto</h2>
+    </div>
+
+    <form (ngSubmit)="createProject()" [formGroup]="form">
+      <mat-form-field appearance="outline">
+        <mat-label>Nombre</mat-label>
+        <input matInput formControlName="nombre" maxlength="160" />
+        @if (form.controls.nombre.touched && form.controls.nombre.invalid) {
+          <mat-error>Escribe un nombre de hasta 160 caracteres.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Descripción</mat-label>
+        <textarea matInput formControlName="descripcion" maxlength="2000" rows="3"></textarea>
+        <mat-hint align="end">{{ form.controls.descripcion.value.length }}/2000</mat-hint>
+      </mat-form-field>
+
+      @if (formError()) {
+        <p class="form-error" role="alert">{{ formError() }}</p>
+      }
+      <button mat-flat-button type="submit" [disabled]="saving()">
+        {{ saving() ? 'Creando…' : 'Crear proyecto' }}
+      </button>
+    </form>
+  </section>
+
+  <section class="list-section" aria-labelledby="active-title">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">Disponibles</p>
+        <h2 id="active-title">Proyectos activos</h2>
+      </div>
+      <span>{{ context.projects().length }}</span>
+    </div>
+
+    @if (context.projects().length === 0) {
+      <div class="empty-state">
+        <strong>Aún no hay proyectos activos.</strong>
+        <p>Crea el primero con el formulario de arriba.</p>
+      </div>
+    } @else {
+      <div class="project-grid">
+        @for (project of context.projects(); track project.id) {
+          <mat-card
+            appearance="outlined"
+            [class.current]="project.id === context.activeProject()?.id"
+          >
+            <mat-card-header>
+              <mat-card-title>{{ project.nombre }}</mat-card-title>
+              @if (project.id === context.activeProject()?.id) {
+                <span class="active-badge">Activo</span>
+              }
+            </mat-card-header>
+            <mat-card-content>
+              <p>{{ project.descripcion || 'Sin descripción.' }}</p>
+              <small>{{ project._count.registros }} registros</small>
+            </mat-card-content>
+            <mat-card-actions align="end">
+              <button mat-button type="button" (click)="openProject(project.id, 'settings')">
+                Editar
+              </button>
+              <button mat-flat-button type="button" (click)="openProject(project.id)">Abrir</button>
+            </mat-card-actions>
+          </mat-card>
+        }
+      </div>
+    }
+  </section>
+
+  <section class="list-section archived" aria-labelledby="archived-title">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">Solo lectura</p>
+        <h2 id="archived-title">Proyectos archivados</h2>
+      </div>
+      <span>{{ context.archivedProjects().length }}</span>
+    </div>
+
+    @if (actionError()) {
+      <p class="form-error" role="alert">{{ actionError() }}</p>
+    }
+
+    @if (context.archivedProjects().length === 0) {
+      <div class="empty-state compact">No hay proyectos archivados.</div>
+    } @else {
+      <div class="archived-list">
+        @for (project of context.archivedProjects(); track project.id) {
+          <article>
+            <div>
+              <strong>{{ project.nombre }}</strong>
+              <p>
+                {{ project.descripcion || 'Sin descripción.' }} ·
+                {{ project._count.registros }} registros
+              </p>
+            </div>
+            <button
+              mat-stroked-button
+              type="button"
+              [disabled]="restoringId() !== null"
+              (click)="restoreProject(project.id)"
+            >
+              {{ restoringId() === project.id ? 'Restaurando…' : 'Restaurar' }}
+            </button>
+          </article>
+        }
+      </div>
+    }
+  </section>
+}

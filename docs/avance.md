@@ -5,7 +5,7 @@
 - [x] Etapa 1 — Base técnica
 - [x] Etapa 2 — Modelo de datos y reglas comerciales
 - [x] Etapa 3 — Acceso privado
-- [ ] Etapa 4 — Proyectos comerciales
+- [x] Etapa 4 — Proyectos comerciales
 - [ ] Etapa 5 — Clientes y prospectos
 - [ ] Etapa 6 — Seguimiento comercial
 - [ ] Etapa 7 — Pendientes y semáforo
@@ -31,7 +31,9 @@ Las rutas de proyectos, registros, actividades y tareas validan la cadena comple
 
 ## Etapa 4 — Proyectos comerciales
 
-Crear, listar, editar, archivar y seleccionar proyectos. Establecer el contexto de proyecto en la API y pruebas que demuestren el aislamiento.
+Administración para crear, listar y editar proyectos, además de archivarlos y restaurarlos sin perder datos. El proyecto activo se conserva por usuario en el navegador, se valida contra el backend y aparece en la barra global y en la URL. La navegación responsive incluye Hoy, Prospectos y clientes, Seguimientos y Configuración.
+
+El cambio de proyecto reinicia formularios y aumenta una revisión de contexto para descartar respuestas tardías. Los archivados quedan fuera del selector y todas sus mutaciones se bloquean en NestJS hasta restaurarlos. Verificado con 11 pruebas e2e sobre PostgreSQL limpio y pruebas Angular específicas de selección persistida y respuestas de red obsoletas.
 
 ## Etapa 5 — Clientes y prospectos
 

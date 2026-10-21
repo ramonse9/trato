@@ -131,6 +131,58 @@ describeDatabase('Acceso privado y aislamiento (e2e)', () => {
     await agent.get(`/api/projects/${projectB}/records`).expect(404);
   });
 
+  it('crea, lista y edita únicamente proyectos propios', async () => {
+    const created = await agent
+      .post('/api/projects')
+      .set('Origin', 'http://localhost:4200')
+      .set('X-CSRF-Token', csrfToken)
+      .send({
+        nombre: '  Proyecto nuevo  ',
+        descripcion: '  Cartera independiente  ',
+      })
+      .expect(201);
+
+    expect(created.body.nombre).toBe('Proyecto nuevo');
+    expect(created.body.descripcion).toBe('Cartera independiente');
+
+    await agent
+      .patch(`/api/projects/${created.body.id}`)
+      .set('Origin', 'http://localhost:4200')
+      .set('X-CSRF-Token', csrfToken)
+      .send({ nombre: 'Proyecto nuevo editado', descripcion: '' })
+      .expect(200)
+      .expect(({ body }) => {
+        expect(body.nombre).toBe('Proyecto nuevo editado');
+        expect(body.descripcion).toBeNull();
+      });
+
+    const active = await agent.get('/api/projects').expect(200);
+    expect(active.body.map((project: { id: string }) => project.id)).toContain(
+      created.body.id,
+    );
+  });
+
+  it('no permite editar, archivar ni restaurar proyectos ajenos', async () => {
+    await agent
+      .patch(`/api/projects/${projectB}`)
+      .set('Origin', 'http://localhost:4200')
+      .set('X-CSRF-Token', csrfToken)
+      .send({ nombre: 'Proyecto invadido', descripcion: null })
+      .expect(404);
+    await agent
+      .post(`/api/projects/${projectB}/archive`)
+      .set('Origin', 'http://localhost:4200')
+      .set('X-CSRF-Token', csrfToken)
+      .send({})
+      .expect(404);
+    await agent
+      .post(`/api/projects/${projectB}/restore`)
+      .set('Origin', 'http://localhost:4200')
+      .set('X-CSRF-Token', csrfToken)
+      .send({})
+      .expect(404);
+  });
+
   it('no consulta ni modifica un registro bajo otro proyecto', async () => {
     await agent.get(`/api/projects/${projectA}/records/${recordB}`).expect(404);
     await agent
@@ -163,6 +215,48 @@ describeDatabase('Acceso privado y aislamiento (e2e)', () => {
       .set('Origin', 'http://localhost:4200')
       .send({ nombreNegocio: 'Sin token' })
       .expect(403);
+  });
+
+  it('archiva sin borrar datos, bloquea cambios y permite restaurar', async () => {
+    await agent
+      .post(`/api/projects/${projectA}/archive`)
+      .set('Origin', 'http://localhost:4200')
+      .set('X-CSRF-Token', csrfToken)
+      .send({})
+      .expect(201);
+
+    const active = await agent.get('/api/projects').expect(200);
+    expect(
+      active.body.map((project: { id: string }) => project.id),
+    ).not.toContain(projectA);
+    const archived = await agent.get('/api/projects/archived').expect(200);
+    expect(
+      archived.body.map((project: { id: string }) => project.id),
+    ).toContain(projectA);
+
+    await agent.get(`/api/projects/${projectA}/records/${recordA}`).expect(200);
+    await agent
+      .patch(`/api/projects/${projectA}/records/${recordA}`)
+      .set('Origin', 'http://localhost:4200')
+      .set('X-CSRF-Token', csrfToken)
+      .send({ nombreNegocio: 'No debe cambiar' })
+      .expect(409);
+
+    await agent
+      .post(`/api/projects/${projectA}/restore`)
+      .set('Origin', 'http://localhost:4200')
+      .set('X-CSRF-Token', csrfToken)
+      .send({})
+      .expect(201);
+
+    const project = await prisma.proyectoComercial.findUniqueOrThrow({
+      where: { id: projectA },
+    });
+    const record = await prisma.registroComercial.findUniqueOrThrow({
+      where: { id: recordA },
+    });
+    expect(project.archivadoEn).toBeNull();
+    expect(record.nombreNegocio).toBe('Negocio A');
   });
 
   it('limita intentos de inicio de sesión', async () => {

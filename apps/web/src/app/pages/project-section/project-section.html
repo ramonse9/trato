@@ -1,0 +1,16 @@
+<header class="page-header">
+  <p class="eyebrow">{{ eyebrow }}</p>
+  <h1>{{ title }}</h1>
+  <p>
+    Mostrando únicamente información de <strong>{{ context.activeProject()?.nombre }}</strong
+    >.
+  </p>
+</header>
+
+<mat-card appearance="outlined" class="empty-state">
+  <mat-card-content>
+    <p class="empty-label">Proyecto activo</p>
+    <h2>{{ emptyTitle }}</h2>
+    <p>{{ emptyDescription }}</p>
+  </mat-card-content>
+</mat-card>
