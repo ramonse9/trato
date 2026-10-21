@@ -60,6 +60,8 @@ export interface CommercialRecordSummary {
   telefono: string | null;
   correo: string | null;
   direccion: string | null;
+  latitud: string | null;
+  longitud: string | null;
   etapa: CommercialStage;
   nivelInteres: InterestLevel;
   notasGenerales: string | null;
@@ -134,8 +136,6 @@ export interface CommercialRecordDetail extends Omit<
   CommercialRecordSummary,
   'ultimoContacto' | 'proximaAccion'
 > {
-  latitud: string | null;
-  longitud: string | null;
   actividades: RecordActivity[];
   tareasSeguimiento: FollowUpTask[];
 }
@@ -163,6 +163,8 @@ export interface RecordUpdateInput {
   telefono?: string | null;
   correo?: string | null;
   direccion?: string | null;
+  latitud?: number | null;
+  longitud?: number | null;
   etapa?: CommercialStage;
   nivelInteres?: InterestLevel;
   notasGenerales?: string | null;

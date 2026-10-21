@@ -13,6 +13,13 @@
   gap: 1rem;
 }
 
+.header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
 .eyebrow {
   margin: 0 0 0.45rem;
   color: #5e766e;
@@ -103,6 +110,23 @@ mat-card-content {
   color: #a03d32;
 }
 
+.coordinate-error {
+  margin: -0.25rem 0 0.75rem;
+  color: #a03d32;
+  font-size: 0.82rem;
+}
+
+.saved-location-link {
+  margin: -0.35rem 0 1rem;
+  color: #60766f;
+  font-size: 0.84rem;
+}
+
+.saved-location-link a {
+  color: #245f48;
+  font-weight: 700;
+}
+
 .archive-zone {
   display: flex;
   align-items: center;
@@ -164,9 +188,16 @@ mat-card-content {
   }
 
   .page-header button,
+  .header-actions a,
+  .header-actions button,
   form > button,
   .archive-zone > button,
   .archive-confirmation button {
     min-height: 2.75rem;
+  }
+
+  .header-actions {
+    display: grid;
+    grid-template-columns: 1fr;
   }
 }

@@ -80,6 +80,7 @@
           <th>Etapa e interés</th>
           <th>Último contacto</th>
           <th>Próxima acción</th>
+          <th>Accesos</th>
         </tr>
       </thead>
       <tbody>
@@ -115,6 +116,35 @@
                 <span class="muted">Sin acción pendiente</span>
               }
             </td>
+            <td>
+              <div class="row-actions">
+                @if (whatsappLink(record.telefono); as whatsapp) {
+                  <a
+                    class="external-link"
+                    [href]="whatsapp"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    (click)="$event.stopPropagation()"
+                    aria-label="Abrir WhatsApp de {{ record.nombreNegocio }}"
+                    >WhatsApp</a
+                  >
+                }
+                @if (mapsLink(record); as maps) {
+                  <a
+                    class="external-link"
+                    [href]="maps"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    (click)="$event.stopPropagation()"
+                    aria-label="Abrir ubicación de {{ record.nombreNegocio }} en Google Maps"
+                    >Mapa</a
+                  >
+                }
+                @if (!whatsappLink(record.telefono) && !mapsLink(record)) {
+                  <span class="muted">Sin accesos</span>
+                }
+              </div>
+            </td>
           </tr>
         }
       </tbody>
@@ -123,39 +153,54 @@
 
   <div class="mobile-cards">
     @for (record of records(); track record.id) {
-      <button type="button" class="record-card" (click)="open(record.id)">
-        <span class="card-heading">
-          <strong>{{ record.nombreNegocio }}</strong>
-          <span class="stage" [class.client]="record.etapa === 'CLIENTE'">
-            {{ stage(record.etapa) }}
+      <article class="record-card">
+        <a
+          class="record-card-link"
+          [routerLink]="['/p', context.activeProject()?.id, 'records', record.id]"
+        >
+          <span class="card-heading">
+            <strong>{{ record.nombreNegocio }}</strong>
+            <span class="stage" [class.client]="record.etapa === 'CLIENTE'">
+              {{ stage(record.etapa) }}
+            </span>
           </span>
-        </span>
-        <span>{{ record.nombreEncargado || 'Encargado por identificar' }}</span>
-        <span class="card-grid">
-          <span>
-            <small>Interés</small>
-            {{ interest(record.nivelInteres) }}
+          <span>{{ record.nombreEncargado || 'Encargado por identificar' }}</span>
+          <span class="card-grid">
+            <span>
+              <small>Interés</small>
+              {{ interest(record.nivelInteres) }}
+            </span>
+            <span>
+              <small>Último contacto</small>
+              {{
+                record.ultimoContacto
+                  ? contactDate(record.ultimoContacto.ocurridaEn)
+                  : 'Sin contacto'
+              }}
+            </span>
           </span>
-          <span>
-            <small>Último contacto</small>
-            {{
-              record.ultimoContacto ? contactDate(record.ultimoContacto.ocurridaEn) : 'Sin contacto'
-            }}
+          <span class="next-action">
+            <span class="next-heading">
+              <small>Próxima acción</small>
+              <app-follow-up-status [status]="record.semaforo" />
+            </span>
+            @if (record.proximaAccion) {
+              {{ record.proximaAccion.descripcion }} ·
+              {{ calendarDate(record.proximaAccion.fechaVencimiento) }}
+            } @else {
+              Sin acción pendiente
+            }
           </span>
-        </span>
-        <span class="next-action">
-          <span class="next-heading">
-            <small>Próxima acción</small>
-            <app-follow-up-status [status]="record.semaforo" />
-          </span>
-          @if (record.proximaAccion) {
-            {{ record.proximaAccion.descripcion }} ·
-            {{ calendarDate(record.proximaAccion.fechaVencimiento) }}
-          } @else {
-            Sin acción pendiente
+        </a>
+        <div class="card-actions">
+          @if (whatsappLink(record.telefono); as whatsapp) {
+            <a [href]="whatsapp" target="_blank" rel="noopener noreferrer">Abrir WhatsApp</a>
           }
-        </span>
-      </button>
+          @if (mapsLink(record); as maps) {
+            <a [href]="maps" target="_blank" rel="noopener noreferrer">Abrir ubicación</a>
+          }
+        </div>
+      </article>
     }
   </div>
 

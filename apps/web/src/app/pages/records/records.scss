@@ -112,6 +112,18 @@ td small,
   margin-top: 0.45rem;
 }
 
+.row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.external-link {
+  color: #245f48;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
 .stage {
   display: inline-block;
   width: fit-content;
@@ -203,16 +215,21 @@ td small,
   }
 
   .record-card {
-    display: grid;
-    gap: 0.65rem;
+    overflow: hidden;
     width: 100%;
-    padding: 1rem;
+    padding: 0;
     border: 1px solid rgba(23, 55, 45, 0.14);
     border-radius: 0.9rem;
     background: #fffdf8;
     color: #17372d;
-    font: inherit;
-    text-align: left;
+  }
+
+  .record-card-link {
+    display: grid;
+    gap: 0.65rem;
+    padding: 1rem;
+    color: inherit;
+    text-decoration: none;
   }
 
   .card-heading {
@@ -252,6 +269,30 @@ td small,
 
   .next-heading small {
     margin-bottom: 0;
+  }
+
+  .card-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border-top: 1px solid rgba(23, 55, 45, 0.1);
+  }
+
+  .card-actions:empty {
+    display: none;
+  }
+
+  .card-actions a {
+    min-height: 2.75rem;
+    padding: 0.8rem;
+    color: #245f48;
+    font-size: 0.82rem;
+    font-weight: 750;
+    text-align: center;
+    text-decoration: none;
+  }
+
+  .card-actions a + a {
+    border-left: 1px solid rgba(23, 55, 45, 0.1);
   }
 
   .pagination {

@@ -7,6 +7,10 @@ import { MatSelectModule } from '@angular/material/select';
 import { Router, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { FollowUpStatusBadge } from '../../components/follow-up-status/follow-up-status';
+import {
+  googleMapsUrl as buildGoogleMapsUrl,
+  whatsappUrl as buildWhatsappUrl,
+} from '../../core/external-links';
 import { ProjectContextService } from '../../core/project-context.service';
 import { RecordsService } from '../../core/records.service';
 import {
@@ -116,6 +120,14 @@ export class Records {
 
   interest(value: InterestLevel): string {
     return interestLabel(value);
+  }
+
+  whatsappLink(phone: string | null): string | null {
+    return buildWhatsappUrl(phone);
+  }
+
+  mapsLink(record: CommercialRecordSummary): string | null {
+    return buildGoogleMapsUrl(record);
   }
 
   contactDate(value: string): string {

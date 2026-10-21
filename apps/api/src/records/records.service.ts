@@ -199,6 +199,14 @@ export class RecordsService {
       recordId,
     );
     const stageChanged = dto.etapa !== undefined && dto.etapa !== current.etapa;
+    const latitude = dto.latitud !== undefined ? dto.latitud : current.latitud;
+    const longitude =
+      dto.longitud !== undefined ? dto.longitud : current.longitud;
+    if ((latitude === null) !== (longitude === null)) {
+      throw new BadRequestException(
+        'La latitud y la longitud deben guardarse juntas.',
+      );
+    }
 
     return this.prisma.$transaction(async (tx) => {
       const record = await tx.registroComercial.update({

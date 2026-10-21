@@ -1,7 +1,14 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, effect, inject, signal, untracked } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  FormControl,
+  FormGroup,
+  ReactiveFormsModule,
+  ValidationErrors,
+  Validators,
+} from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -10,6 +17,10 @@ import { MatSelectModule } from '@angular/material/select';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { firstValueFrom, map, Subscription } from 'rxjs';
 import { FollowUpStatusBadge } from '../../components/follow-up-status/follow-up-status';
+import {
+  googleMapsUrl as buildGoogleMapsUrl,
+  whatsappUrl as buildWhatsappUrl,
+} from '../../core/external-links';
 import { ProjectContextService } from '../../core/project-context.service';
 import { RecordsService } from '../../core/records.service';
 import {
@@ -21,6 +32,12 @@ import {
   stageLabel,
 } from '../../models/commercial-record';
 import { FollowUpPanel } from './follow-up-panel';
+
+function coordinatePairValidator(control: AbstractControl): ValidationErrors | null {
+  const latitude = String(control.get('latitud')?.value ?? '').trim();
+  const longitude = String(control.get('longitud')?.value ?? '').trim();
+  return Boolean(latitude) === Boolean(longitude) ? null : { coordinatePair: true };
+}
 
 @Component({
   selector: 'app-record-detail',
@@ -59,38 +76,57 @@ export class RecordDetail {
   readonly confirmArchive = signal(false);
   readonly message = signal<string | null>(null);
   readonly errorMessage = signal<string | null>(null);
-  readonly form = new FormGroup({
-    nombreNegocio: new FormControl('', {
-      nonNullable: true,
-      validators: [Validators.required, Validators.maxLength(180)],
-    }),
-    nombreEncargado: new FormControl('', {
-      nonNullable: true,
-      validators: [Validators.maxLength(160)],
-    }),
-    telefono: new FormControl('', {
-      nonNullable: true,
-      validators: [Validators.pattern(/^\+[1-9]\d{7,14}$/), Validators.maxLength(16)],
-    }),
-    correo: new FormControl('', {
-      nonNullable: true,
-      validators: [Validators.email, Validators.maxLength(254)],
-    }),
-    direccion: new FormControl('', {
-      nonNullable: true,
-      validators: [Validators.maxLength(1000)],
-    }),
-    etapa: new FormControl<CommercialStage>('POR_CONTACTAR', { nonNullable: true }),
-    nivelInteres: new FormControl<InterestLevel>('SIN_EVALUAR', { nonNullable: true }),
-    notasGenerales: new FormControl('', {
-      nonNullable: true,
-      validators: [Validators.maxLength(10000)],
-    }),
-    motivoDescarte: new FormControl('', {
-      nonNullable: true,
-      validators: [Validators.maxLength(2000)],
-    }),
-  });
+  readonly form = new FormGroup(
+    {
+      nombreNegocio: new FormControl('', {
+        nonNullable: true,
+        validators: [Validators.required, Validators.maxLength(180)],
+      }),
+      nombreEncargado: new FormControl('', {
+        nonNullable: true,
+        validators: [Validators.maxLength(160)],
+      }),
+      telefono: new FormControl('', {
+        nonNullable: true,
+        validators: [Validators.pattern(/^\+[1-9]\d{7,14}$/), Validators.maxLength(16)],
+      }),
+      correo: new FormControl('', {
+        nonNullable: true,
+        validators: [Validators.email, Validators.maxLength(254)],
+      }),
+      direccion: new FormControl('', {
+        nonNullable: true,
+        validators: [Validators.maxLength(1000)],
+      }),
+      latitud: new FormControl('', {
+        nonNullable: true,
+        validators: [
+          Validators.pattern(/^-?(?:\d+(?:\.\d+)?|\.\d+)$/),
+          Validators.min(-90),
+          Validators.max(90),
+        ],
+      }),
+      longitud: new FormControl('', {
+        nonNullable: true,
+        validators: [
+          Validators.pattern(/^-?(?:\d+(?:\.\d+)?|\.\d+)$/),
+          Validators.min(-180),
+          Validators.max(180),
+        ],
+      }),
+      etapa: new FormControl<CommercialStage>('POR_CONTACTAR', { nonNullable: true }),
+      nivelInteres: new FormControl<InterestLevel>('SIN_EVALUAR', { nonNullable: true }),
+      notasGenerales: new FormControl('', {
+        nonNullable: true,
+        validators: [Validators.maxLength(10000)],
+      }),
+      motivoDescarte: new FormControl('', {
+        nonNullable: true,
+        validators: [Validators.maxLength(2000)],
+      }),
+    },
+    { validators: [coordinatePairValidator] },
+  );
 
   constructor() {
     effect((onCleanup) => {
@@ -124,6 +160,8 @@ export class RecordDetail {
           telefono: values.telefono || null,
           correo: values.correo || null,
           direccion: values.direccion || null,
+          latitud: values.latitud ? Number(values.latitud) : null,
+          longitud: values.longitud ? Number(values.longitud) : null,
           etapa: values.etapa,
           nivelInteres: values.nivelInteres,
           notasGenerales: values.notasGenerales || null,
@@ -199,6 +237,14 @@ export class RecordDetail {
     return stageLabel(value);
   }
 
+  whatsappLink(phone: string | null): string | null {
+    return buildWhatsappUrl(phone);
+  }
+
+  mapsLink(record: CommercialRecordDetail): string | null {
+    return buildGoogleMapsUrl(record);
+  }
+
   private load(recordId: string, preserveMessage = false): void {
     const scope = this.context.captureScope();
     if (!scope) return;
@@ -238,6 +284,8 @@ export class RecordDetail {
       telefono: record.telefono ?? '',
       correo: record.correo ?? '',
       direccion: record.direccion ?? '',
+      latitud: record.latitud ?? '',
+      longitud: record.longitud ?? '',
       etapa: record.etapa,
       nivelInteres: record.nivelInteres,
       notasGenerales: record.notasGenerales ?? '',
@@ -257,6 +305,8 @@ export class RecordDetail {
       telefono: '',
       correo: '',
       direccion: '',
+      latitud: '',
+      longitud: '',
       etapa: 'POR_CONTACTAR',
       nivelInteres: 'SIN_EVALUAR',
       notasGenerales: '',

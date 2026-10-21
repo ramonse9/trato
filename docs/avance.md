@@ -9,7 +9,7 @@
 - [x] Etapa 5 — Clientes y prospectos
 - [x] Etapa 6 — Seguimiento comercial
 - [x] Etapa 7 — Pendientes y semáforo
-- [ ] Etapa 8 — Enlaces y pulido móvil
+- [x] Etapa 8 — Enlaces y pulido móvil
 
 ## Etapa 1 — Base técnica
 
@@ -59,6 +59,10 @@ No se necesitó otra migración. Verificado aplicando las tres migraciones exist
 
 ## Etapa 8 — Enlaces y pulido móvil
 
-Enlaces seguros a WhatsApp y Google Maps, revisión de accesibilidad, estados vacíos, manejo de errores y recorrido completo desde móvil.
+Accesos seguros a WhatsApp y Google Maps desde la cartera responsive y la ficha. WhatsApp exige E.164 con código de país y abre `wa.me` sin mensaje automático ni efecto en el historial. Maps prefiere coordenadas manuales válidas y usa como alternativa la dirección completa correctamente codificada.
+
+La ficha permite capturar latitud y longitud juntas y valida rangos en frontend, backend y PostgreSQL. Si falta toda ubicación se oculta la acción; si solo existe dirección se advierte que un dato incompleto puede ser impreciso. Los enlaces usan HTTPS fijo, pestaña nueva, texto accesible y protección `noopener noreferrer`.
+
+No se agregó una migración ni se integraron APIs, geocodificación, claves o facturación. Verificado con pruebas unitarias de teléfonos internacionales, direcciones con acentos y caracteres especiales, coordenadas negativas y ausencia de ubicación; la suite e2e comprueba E.164, persistencia manual, rangos y pares de coordenadas.
 
 Cada etapa deberá agregar sus migraciones, pruebas y notas de ejecución sin adelantar funciones de etapas posteriores.

@@ -356,6 +356,44 @@ describeDatabase('Acceso privado y aislamiento (e2e)', () => {
     expect(restored.body.nombreNegocio).toBe('Prospecto mínimo');
     expect(restored.body.etapa).toBe('CLIENTE');
     expect(restored.body.notasGenerales).toBe('Conserva la misma ficha.');
+
+    await agent
+      .patch(`/api/projects/${projectA}/records/${created.body.id}`)
+      .set('Origin', 'http://localhost:4200')
+      .set('X-CSRF-Token', csrfToken)
+      .send({
+        telefono: '+351211234567',
+        direccion: 'Av. Ejército Mexicano #123, Centro, Mazatlán',
+        latitud: 23.24861,
+        longitud: -106.45531,
+      })
+      .expect(200);
+    const withManualLocation = await agent
+      .get(`/api/projects/${projectA}/records/${created.body.id}`)
+      .expect(200);
+    expect(withManualLocation.body.telefono).toBe('+351211234567');
+    expect(withManualLocation.body.direccion).toContain('Ejército Mexicano');
+    expect(withManualLocation.body.latitud).toBe('23.24861');
+    expect(withManualLocation.body.longitud).toBe('-106.45531');
+
+    await agent
+      .patch(`/api/projects/${projectA}/records/${created.body.id}`)
+      .set('Origin', 'http://localhost:4200')
+      .set('X-CSRF-Token', csrfToken)
+      .send({ telefono: '6691234567' })
+      .expect(400);
+    await agent
+      .patch(`/api/projects/${projectA}/records/${created.body.id}`)
+      .set('Origin', 'http://localhost:4200')
+      .set('X-CSRF-Token', csrfToken)
+      .send({ latitud: 91, longitud: -106.45531 })
+      .expect(400);
+    await agent
+      .patch(`/api/projects/${projectA}/records/${created.body.id}`)
+      .set('Origin', 'http://localhost:4200')
+      .set('X-CSRF-Token', csrfToken)
+      .send({ latitud: null })
+      .expect(400);
   });
 
   it('registra contactos y tareas sin duplicarlos y conserva los cambios relevantes', async () => {

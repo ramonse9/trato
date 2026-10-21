@@ -2,10 +2,13 @@ import { Transform } from 'class-transformer';
 import {
   IsEmail,
   IsEnum,
+  IsNumber,
   IsOptional,
   IsString,
   Matches,
   MaxLength,
+  Max,
+  Min,
   MinLength,
 } from 'class-validator';
 import { EtapaComercial, NivelInteres } from '../../generated/prisma/client.js';
@@ -18,6 +21,11 @@ function optionalText(value: unknown): unknown {
 
 function requiredText(value: unknown): unknown {
   return typeof value === 'string' ? value.trim().normalize('NFC') : value;
+}
+
+function optionalCoordinate(value: unknown): unknown {
+  if (value === null || value === undefined || value === '') return null;
+  return typeof value === 'number' ? value : Number(value);
 }
 
 export class UpdateRecordDto {
@@ -52,6 +60,20 @@ export class UpdateRecordDto {
   @IsString()
   @MaxLength(1000)
   direccion?: string | null;
+
+  @Transform(({ value }) => optionalCoordinate(value))
+  @IsOptional()
+  @IsNumber({ allowInfinity: false, allowNaN: false, maxDecimalPlaces: 6 })
+  @Min(-90)
+  @Max(90)
+  latitud?: number | null;
+
+  @Transform(({ value }) => optionalCoordinate(value))
+  @IsOptional()
+  @IsNumber({ allowInfinity: false, allowNaN: false, maxDecimalPlaces: 6 })
+  @Min(-180)
+  @Max(180)
+  longitud?: number | null;
 
   @Transform(({ value }) => optionalText(value))
   @IsOptional()

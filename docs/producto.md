@@ -117,6 +117,16 @@ Las rutas de cartera llevan contexto explícito: `/api/projects/:projectId/recor
 - Completar o reprogramar desde Hoy usa las mismas operaciones autorizadas, transaccionales e idempotentes de la ficha. Una respuesta tardía se ignora si el proyecto activo cambió.
 - Esta etapa no requiere migración: el estado se deriva de tareas y registros existentes y no se persiste como un dato duplicado.
 
+## WhatsApp y Google Maps
+
+- El teléfono se captura en formato E.164 con `+`, código de país y número. Angular, NestJS y PostgreSQL lo validan; la aplicación no supone un país predeterminado ni completa códigos silenciosamente.
+- El enlace de WhatsApp tiene exclusivamente la forma `https://wa.me/<dígitos>`. No incluye texto, no envía mensajes y abrirlo no crea una actividad ni modifica el último contacto.
+- La dirección, latitud y longitud se capturan manualmente. Las coordenadas deben guardarse juntas, con latitud entre -90 y 90, longitud entre -180 y 180 y hasta seis decimales.
+- Google Maps usa `https://www.google.com/maps/search/?api=1&query=`. Prefiere el par de coordenadas válido; si no existe, usa la dirección completa codificada. Sin ninguno de los dos datos no se muestra la acción.
+- La ficha advierte que una dirección incompleta puede producir resultados imprecisos. La dirección guardada y la acción “Abrir ubicación” llevan al mismo enlace calculado.
+- Los enlaces externos parten de prefijos HTTPS constantes, codifican los datos variables, abren en otra pestaña y usan `rel="noopener noreferrer"`.
+- No se usa Maps JavaScript API, Places API, geocodificación, autocompletado, claves, facturación ni servicios externos de pago.
+
 ## Principios de entrega
 
 - Cada etapa debe terminar con una parte funcional y verificable.

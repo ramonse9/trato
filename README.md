@@ -130,6 +130,14 @@ El semáforo usa la tarea pendiente más próxima y la fecha de `America/Mazatla
 
 Las tareas completadas no cuentan. Los descartados y archivados quedan fuera de los pendientes habituales; los clientes con tareas sí aparecen.
 
+## WhatsApp y Google Maps
+
+El listado y la ficha muestran **Abrir WhatsApp** cuando existe un teléfono E.164 válido, por ejemplo `+351211234567`. El código de país es obligatorio. El enlace abre la conversación, pero no incluye un mensaje ni registra por sí mismo un contacto realizado.
+
+**Abrir ubicación** usa las coordenadas manuales cuando existen; en caso contrario utiliza la dirección codificada. La latitud y longitud deben capturarse juntas y respetar los rangos geográficos. Sin dirección ni coordenadas la acción no aparece.
+
+Estos accesos son enlaces HTTPS comunes. No necesitan claves, facturación, Maps JavaScript API, Places API, geocodificación ni autocompletado externo.
+
 ## Sesiones en producción
 
 Sirve la web y la API bajo el mismo sitio HTTPS, configura `NODE_ENV=production` y establece `WEB_ORIGIN` con el origen público exacto (esquema, host y puerto). En producción la cookie lleva `Secure` y el prefijo `__Host-`. `SESSION_TTL_DAYS` controla su vigencia (7 días por defecto; máximo 30). Los tokens de sesión se almacenan con hash en PostgreSQL y cerrar sesión los revoca.
