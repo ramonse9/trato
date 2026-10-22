@@ -139,6 +139,9 @@ describeDatabase('Acceso privado y aislamiento (e2e)', () => {
     await request(app.getHttpServer())
       .get(`/api/projects/${projectA}/follow-ups`)
       .expect(401);
+    await request(app.getHttpServer())
+      .get(`/api/projects/${projectA}/records/export.csv`)
+      .expect(401);
   });
 
   it('inicia sesión con cookie HttpOnly y crea el contexto autenticado', async () => {
@@ -164,6 +167,69 @@ describeDatabase('Acceso privado y aislamiento (e2e)', () => {
     await agent.get(`/api/projects/${projectB}/records`).expect(404);
     await agent.get(`/api/projects/${projectB}/today`).expect(404);
     await agent.get(`/api/projects/${projectB}/follow-ups`).expect(404);
+    await agent.get(`/api/projects/${projectB}/records/export.csv`).expect(404);
+  });
+
+  it('exporta únicamente la cartera propia y neutraliza fórmulas CSV', async () => {
+    const owner = await prisma.proyectoComercial.findUniqueOrThrow({
+      where: { id: projectA },
+      select: { usuarioId: true },
+    });
+    const project = await prisma.proyectoComercial.create({
+      data: {
+        usuarioId: owner.usuarioId,
+        nombre: 'Proyecto exclusivo de exportación',
+      },
+    });
+    const [active, archived] = await Promise.all([
+      prisma.registroComercial.create({
+        data: {
+          proyectoId: project.id,
+          nombreNegocio: '=HYPERLINK("https://example.invalid")',
+          nombreEncargado: 'María, Encargada',
+          etapa: 'PROPUESTA_ENVIADA',
+          nivelInteres: 'ALTO',
+        },
+      }),
+      prisma.registroComercial.create({
+        data: {
+          proyectoId: project.id,
+          nombreNegocio: 'Registro archivado exportable',
+          archivadoEn: new Date(),
+        },
+      }),
+    ]);
+    await prisma.tareaSeguimiento.create({
+      data: {
+        proyectoId: project.id,
+        registroId: active.id,
+        descripcion: '+Enviar propuesta final',
+        tipo: 'ENVIAR_PROPUESTA',
+        fechaVencimiento: new Date('2026-11-15T00:00:00.000Z'),
+      },
+    });
+
+    const exported = await agent
+      .get(`/api/projects/${project.id}/records/export.csv`)
+      .expect(200)
+      .expect('Content-Type', /text\/csv/)
+      .expect('Cache-Control', 'private, no-store');
+
+    expect(exported.headers['content-disposition']).toContain(
+      'trato-registros.csv',
+    );
+    expect(exported.text.startsWith('\uFEFF')).toBe(true);
+    expect(exported.text).toContain('"Etapa comercial"');
+    expect(exported.text).toContain('"Nivel de interés"');
+    expect(exported.text).toContain('"Próxima acción"');
+    expect(exported.text).toContain('"Propuesta enviada"');
+    expect(exported.text).toContain('"Alto"');
+    expect(exported.text).toContain('"2026-11-15"');
+    expect(exported.text).toContain('"\'=HYPERLINK');
+    expect(exported.text).toContain('"\'+Enviar propuesta final"');
+    expect(exported.text).toContain('"María, Encargada"');
+    expect(exported.text).toContain(archived.nombreNegocio);
+    expect(exported.text).not.toContain('Negocio B');
   });
 
   it('crea, lista y edita únicamente proyectos propios', async () => {

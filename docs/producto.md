@@ -138,6 +138,16 @@ Las rutas de cartera llevan contexto explícito: `/api/projects/:projectId/recor
 - Controles principales y acciones en tarjetas tienen un área táctil mínima de 44 px. Los campos usan etiquetas visibles, el foco de teclado es perceptible y los estados no dependen solamente del color.
 - Esta etapa no incorpora modo sin conexión, notificaciones push ni automatizaciones.
 
+## Exportación y preparación operativa
+
+- La cartera permite exportar un CSV de todos los registros del proyecto activo, incluidos los archivados, sin paginación. Contiene etapa, interés, próxima acción y su fecha, además de los datos de contacto principales.
+- La API autentica la descarga y comprueba nuevamente que el proyecto pertenece al usuario. No existe una exportación global ni una forma de elegir el proyecto mediante datos no autorizados del cliente.
+- Todas las celdas se delimitan y escapan como CSV. Los valores capaces de iniciar fórmulas (`=`, `+`, `-`, `@` y variantes) se fuerzan a texto antes de descargar.
+- El CSV es una ayuda operativa y no un respaldo. No incluye todo el historial, tareas completadas, sesiones ni metadatos; la recuperación completa utiliza `pg_dump` y `pg_restore` sobre toda la base.
+- Producción exige PostgreSQL 17 o 18, HTTPS, un origen web exacto y secretos inyectados mediante variables de entorno. La API valida la configuración crítica antes de iniciar.
+- Las migraciones de producción usan exclusivamente los archivos versionados y `prisma migrate deploy`; el seed de desarrollo nunca se ejecuta en producción.
+- La operación inicial requiere respaldos externos periódicos, pruebas de restauración, monitoreo de salud y espacio disponible. Estas tareas no se automatizan dentro de la aplicación.
+
 ## Principios de entrega
 
 - Cada etapa debe terminar con una parte funcional y verificable.

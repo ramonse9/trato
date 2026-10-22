@@ -6,7 +6,8 @@ Base de una aplicación web privada para administrar clientes y prospectos por p
 
 - Node.js 24 LTS (24.15 o posterior)
 - npm 11
-- Docker con Docker Compose
+- PostgreSQL 17 o 18
+- Docker con Docker Compose es opcional
 
 ## Puesta en marcha
 
@@ -23,10 +24,17 @@ Base de una aplicación web privada para administrar clientes y prospectos por p
    npm run prisma:generate
    ```
 
-3. Inicia PostgreSQL:
+3. Inicia PostgreSQL con Docker:
 
    ```bash
    npm run db:up
+   ```
+
+   Si ya tienes PostgreSQL local, crea una base y un rol exclusivos en vez de ejecutar Docker:
+
+   ```bash
+   createuser --login --pwprompt trato
+   createdb --owner=trato trato
    ```
 
 4. Aplica las migraciones y, opcionalmente, carga datos ficticios:
@@ -75,6 +83,8 @@ npm run lint
 npm test
 npm run build
 ```
+
+También puedes ejecutar toda la verificación con `npm run verify`.
 
 Las pruebas de autorización usan una base exclusiva y ya migrada, nunca una base con datos reales:
 
@@ -138,11 +148,19 @@ El listado y la ficha muestran **Abrir WhatsApp** cuando existe un teléfono E.1
 
 Estos accesos son enlaces HTTPS comunes. No necesitan claves, facturación, Maps JavaScript API, Places API, geocodificación ni autocompletado externo.
 
+## Exportación CSV
+
+La cartera permite descargar todos los registros del proyecto activo, incluidos los archivados, con etapa, interés y próxima acción. La API vuelve a validar que el proyecto pertenezca al usuario y neutraliza celdas que una hoja de cálculo pudiera interpretar como fórmulas.
+
+El CSV no incluye todo el historial ni sustituye un respaldo PostgreSQL.
+
 ## Sesiones en producción
 
 Sirve la web y la API bajo el mismo sitio HTTPS, configura `NODE_ENV=production` y establece `WEB_ORIGIN` con el origen público exacto (esquema, host y puerto). En producción la cookie lleva `Secure` y el prefijo `__Host-`. `SESSION_TTL_DAYS` controla su vigencia (7 días por defecto; máximo 30). Los tokens de sesión se almacenan con hash en PostgreSQL y cerrar sesión los revoca.
 
 No ejecutes `db:seed` en producción. Después de desplegar migraciones, crea el usuario mediante `npm run user:create` directamente en una terminal segura del servidor.
+
+La guía completa de compilación, secretos, migraciones, copias, restauración, salud y limitaciones está en [`docs/operacion.md`](docs/operacion.md).
 
 ## Estructura
 

@@ -7,10 +7,28 @@
       >.
     </p>
   </div>
-  @if (!archived() && context.activeProject(); as project) {
-    <a mat-flat-button [routerLink]="['/p', project.id, 'records', 'new']">Nuevo prospecto</a>
+  @if (context.activeProject(); as project) {
+    <div class="header-actions">
+      <button mat-stroked-button type="button" [disabled]="exporting()" (click)="exportCsv()">
+        {{ exporting() ? 'Exportando…' : 'Exportar CSV' }}
+      </button>
+      @if (!archived()) {
+        <a mat-flat-button [routerLink]="['/p', project.id, 'records', 'new']">Nuevo prospecto</a>
+      }
+    </div>
   }
 </header>
+
+<p class="export-note">
+  El CSV incluye toda la cartera del proyecto, incluidos los archivados. No sustituye una copia
+  completa de PostgreSQL.
+</p>
+@if (exportMessage()) {
+  <p class="success" role="status">{{ exportMessage() }}</p>
+}
+@if (exportError()) {
+  <p class="error" role="alert">{{ exportError() }}</p>
+}
 
 <div class="view-switch" role="group" aria-label="Estado de los registros">
   <button mat-button type="button" [class.active]="!archived()" (click)="showArchived(false)">

@@ -3,7 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "description": "Aplicación privada para seguimiento comercial por proyecto.",
-  "workspaces": ["apps/api", "apps/web"],
+  "workspaces": [
+    "apps/api",
+    "apps/web"
+  ],
   "engines": {
     "node": ">=24.15.0 <25"
   },
@@ -16,14 +19,17 @@
   },
   "scripts": {
     "build": "npm run build --workspaces --if-present",
+    "verify": "npm run prisma:validate && npm run lint && npm test && npm run build",
     "test": "npm run test --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
     "dev:api": "npm run start:dev --workspace @trato/api",
     "dev:web": "npm run start --workspace @trato/web",
+    "start:api:prod": "npm run start:prod --workspace @trato/api",
     "db:up": "docker compose up -d postgres",
     "db:down": "docker compose down",
     "db:migrate": "npm run db:migrate --workspace @trato/api",
     "db:deploy": "npm run db:deploy --workspace @trato/api",
+    "db:status": "npm exec --workspace @trato/api -- prisma migrate status",
     "db:seed": "npm run db:seed --workspace @trato/api",
     "user:create": "npm run user:create --workspace @trato/api",
     "prisma:generate": "npm run prisma:generate --workspace @trato/api",

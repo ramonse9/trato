@@ -5,7 +5,11 @@ import {
 } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import type { Prisma } from '../generated/prisma/client.js';
-import { EstadoTarea, EtapaComercial } from '../generated/prisma/client.js';
+import {
+  EstadoTarea,
+  EtapaComercial,
+  NivelInteres,
+} from '../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { ProjectAccessService } from '../projects/project-access.service.js';
 import { CreateRecordDto } from './dto/create-record.dto.js';
@@ -21,6 +25,7 @@ import {
   calculateFollowUpStatus,
   calendarDateValue as serializeCalendarDate,
 } from './follow-up-status.js';
+import { createCsv } from './csv-export.js';
 
 const recordSelect = {
   id: true,
@@ -177,6 +182,63 @@ export class RecordsService {
           : (nextTask?.fechaVencimiento ?? null),
       ),
     };
+  }
+
+  async exportCsv(userId: string, projectId: string): Promise<string> {
+    await this.access.requireActiveProject(userId, projectId);
+    const records = await this.prisma.registroComercial.findMany({
+      where: {
+        proyectoId: projectId,
+        proyecto: { usuarioId: userId },
+      },
+      orderBy: [{ nombreNegocio: 'asc' }, { id: 'asc' }],
+      select: {
+        nombreNegocio: true,
+        nombreEncargado: true,
+        telefono: true,
+        correo: true,
+        direccion: true,
+        etapa: true,
+        nivelInteres: true,
+        archivadoEn: true,
+        tareasSeguimiento: {
+          where: { estado: EstadoTarea.PENDIENTE },
+          orderBy: [{ fechaVencimiento: 'asc' }, { creadaEn: 'asc' }],
+          take: 1,
+          select: { descripcion: true, fechaVencimiento: true },
+        },
+      },
+    });
+
+    return createCsv([
+      [
+        'Nombre del negocio',
+        'Encargado',
+        'Teléfono',
+        'Correo',
+        'Dirección',
+        'Etapa comercial',
+        'Nivel de interés',
+        'Próxima acción',
+        'Fecha de próxima acción',
+        'Archivado',
+      ],
+      ...records.map((record) => {
+        const nextTask = record.tareasSeguimiento[0];
+        return [
+          record.nombreNegocio,
+          record.nombreEncargado,
+          record.telefono,
+          record.correo,
+          record.direccion,
+          this.stageLabel(record.etapa),
+          this.interestLabel(record.nivelInteres),
+          nextTask?.descripcion,
+          nextTask ? serializeCalendarDate(nextTask.fechaVencimiento) : null,
+          record.archivadoEn ? 'Sí' : 'No',
+        ];
+      }),
+    ]);
   }
 
   async create(userId: string, projectId: string, dto: CreateRecordDto) {
@@ -609,6 +671,16 @@ export class RecordsService {
       DESCARTADO: 'Descartado',
     };
     return labels[stage];
+  }
+
+  private interestLabel(interest: NivelInteres): string {
+    const labels: Record<NivelInteres, string> = {
+      SIN_EVALUAR: 'Sin evaluar',
+      BAJO: 'Bajo',
+      MEDIO: 'Medio',
+      ALTO: 'Alto',
+    };
+    return labels[interest];
   }
 
   private async findOperation(

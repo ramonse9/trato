@@ -38,6 +38,12 @@ export class RecordsService {
     return this.http.get<CommercialRecordDetail>(`/api/projects/${projectId}/records/${recordId}`);
   }
 
+  exportCsv(projectId: string): Observable<Blob> {
+    return this.http.get(`/api/projects/${projectId}/records/export.csv`, {
+      responseType: 'blob',
+    });
+  }
+
   create(projectId: string, nombreNegocio: string): Observable<CommercialRecordSummary> {
     return this.http.post<CommercialRecordSummary>(`/api/projects/${projectId}/records`, {
       nombreNegocio,

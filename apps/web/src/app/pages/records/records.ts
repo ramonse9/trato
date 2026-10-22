@@ -1,3 +1,4 @@
+import { DOCUMENT } from '@angular/common';
 import { Component, effect, inject, signal, untracked } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -5,7 +6,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { RouterLink } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { firstValueFrom, Subscription } from 'rxjs';
 import { FollowUpStatusBadge } from '../../components/follow-up-status/follow-up-status';
 import {
   googleMapsUrl as buildGoogleMapsUrl,
@@ -39,6 +40,7 @@ import {
 })
 export class Records {
   private readonly api = inject(RecordsService);
+  private readonly document = inject(DOCUMENT);
   readonly context = inject(ProjectContextService);
   private request?: Subscription;
   private requestGeneration = 0;
@@ -48,6 +50,9 @@ export class Records {
   readonly records = signal<CommercialRecordSummary[]>([]);
   readonly loading = signal(false);
   readonly loadError = signal(false);
+  readonly exporting = signal(false);
+  readonly exportMessage = signal<string | null>(null);
+  readonly exportError = signal<string | null>(null);
   readonly archived = signal(false);
   readonly page = signal(1);
   readonly pageSize = 20;
@@ -69,6 +74,9 @@ export class Records {
         this.archived.set(false);
         this.page.set(1);
         this.records.set([]);
+        this.exporting.set(false);
+        this.exportMessage.set(null);
+        this.exportError.set(null);
         this.load();
       });
       onCleanup(() => this.cancelRequest());
@@ -106,6 +114,35 @@ export class Records {
 
   retry(): void {
     this.load();
+  }
+
+  async exportCsv(): Promise<void> {
+    const project = this.context.activeProject();
+    const scope = this.context.captureScope();
+    if (!project || !scope || this.exporting()) return;
+
+    this.exporting.set(true);
+    this.exportMessage.set(null);
+    this.exportError.set(null);
+    try {
+      const csv = await firstValueFrom(this.api.exportCsv(scope.projectId));
+      if (!this.context.isCurrent(scope)) return;
+      const url = URL.createObjectURL(csv);
+      const anchor = this.document.createElement('a');
+      anchor.href = url;
+      anchor.download = `trato-${this.fileSlug(project.nombre)}-registros.csv`;
+      this.document.body.append(anchor);
+      anchor.click();
+      anchor.remove();
+      setTimeout(() => URL.revokeObjectURL(url));
+      this.exportMessage.set('Exportación CSV descargada.');
+      this.exporting.set(false);
+    } catch {
+      if (this.context.isCurrent(scope)) {
+        this.exportError.set('No fue posible exportar la cartera. Puedes reintentarlo.');
+        this.exporting.set(false);
+      }
+    }
   }
 
   stage(value: CommercialStage): string {
@@ -182,5 +219,16 @@ export class Records {
   private cancelRequest(): void {
     this.request?.unsubscribe();
     this.request = undefined;
+  }
+
+  private fileSlug(value: string): string {
+    return (
+      value
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '') || 'proyecto'
+    );
   }
 }

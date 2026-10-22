@@ -11,6 +11,7 @@
 - [x] Etapa 7 — Pendientes y semáforo
 - [x] Etapa 8 — Enlaces y pulido móvil
 - [x] Etapa 9 — Uso diario desde el celular
+- [x] Etapa 10 — Validación y preparación para uso real
 
 ## Etapa 1 — Base técnica
 
@@ -73,5 +74,15 @@ Flujo directo “Registrar contacto” desde cada tarjeta activa de la cartera. 
 La vista Seguimientos ya es funcional y se limita en backend al proyecto seleccionado. Filtra por pendientes, completados o todos y por rango de vencimientos, conserva los filtros ante errores y ofrece estados vacíos accionables. Archivados y descartados no aparecen en esta agenda operativa.
 
 Se revisó el recorrido en navegador con un viewport móvil: navegación inferior, tarjetas, foco directo, etiquetas, texto del semáforo y controles táctiles. No se agregó modo sin conexión, notificaciones ni automatizaciones. Esta etapa no requiere migración. Verificado con lint, compilación estricta, 19 pruebas unitarias y 14 pruebas e2e sobre PostgreSQL limpio, incluidas autorización, aislamiento, rangos de fecha, tareas completadas y exclusiones.
+
+## Etapa 10 — Validación y preparación para uso real
+
+Revisión integral de acceso, aislamiento, cartera, conversión, historial, tareas, semáforo, exclusiones, enlaces y flujos móviles. Se agregó la exportación CSV de la cartera completa del proyecto activo, con etapa, interés y próxima acción. La descarga se autoriza en NestJS, no mezcla proyectos y neutraliza fórmulas en todas las celdas antes de aplicar el escapado CSV.
+
+La configuración de producción ahora se valida al arrancar y cuenta con un ejemplo sin secretos. `docs/operacion.md` documenta PostgreSQL local o Docker, compilación, despliegue bajo un mismo origen HTTPS, migraciones, usuario inicial, copias completas, restauración en una base separada, salud y limitaciones conocidas. El CSV queda expresamente excluido como mecanismo de respaldo.
+
+Esta etapa no requiere migración de esquema. Verificado el 22 de octubre de 2026 con esquema Prisma válido, lint sin advertencias, compilaciones de producción, 30 pruebas unitarias y 15 pruebas e2e sobre una base PostgreSQL aislada. La base local reportó sus tres migraciones al día y `/api/health` respondió `status: ok`, `database: up` y la zona `America/Mazatlan`.
+
+También se ensayó una copia real en formato personalizado y su restauración transaccional en otra base vacía. Coincidieron los conteos de usuarios, proyectos, registros, actividades, tareas, operaciones idempotentes y migraciones. La revisión responsive a 390 × 844 confirmó inicio de sesión, proyecto visible, navegación inferior, tarjetas, registrar contacto, enlaces externos y el control de exportación con su advertencia. Las bases y archivos temporales del ensayo se eliminaron al terminar.
 
 Cada etapa deberá agregar sus migraciones, pruebas y notas de ejecución sin adelantar funciones de etapas posteriores.

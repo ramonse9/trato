@@ -8,7 +8,9 @@ import {
   Post,
   Query,
   Req,
+  Res,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import type { AuthenticatedRequest } from '../common/authenticated-request.js';
 import { CreateRecordDto } from './dto/create-record.dto.js';
 import { ListRecordsQueryDto } from './dto/list-records-query.dto.js';
@@ -41,6 +43,23 @@ export class RecordsController {
     @Body() dto: CreateRecordDto,
   ) {
     return this.records.create(request.auth.user.id, projectId, dto);
+  }
+
+  @Get('export.csv')
+  async exportCsv(
+    @Req() request: AuthenticatedRequest,
+    @Res({ passthrough: true }) response: Response,
+    @Param('projectId', ParseUUIDPipe) projectId: string,
+  ) {
+    const csv = await this.records.exportCsv(request.auth.user.id, projectId);
+    response.type('text/csv; charset=utf-8');
+    response.setHeader(
+      'Content-Disposition',
+      'attachment; filename="trato-registros.csv"',
+    );
+    response.setHeader('Cache-Control', 'private, no-store');
+    response.setHeader('X-Content-Type-Options', 'nosniff');
+    return csv;
   }
 
   @Get(':recordId')
