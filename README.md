@@ -52,7 +52,7 @@ Base de una aplicación web privada para administrar clientes y prospectos por p
    npm run user:create
    ```
 
-   Si cargaste el seed, usa el correo `desarrollo@trato.local` para asignar la contraseña al usuario ficticio. Sin seed, el comando crea el primer usuario. Pide la contraseña sin mostrarla, exige al menos 12 caracteres y no acepta credenciales como argumentos. Si ya existe un usuario con otro correo, se detiene para no crear una cuenta adicional por accidente.
+   Si cargaste el seed, el comando permite reemplazar el correo del usuario ficticio mientras todavía no tenga contraseña. Sin seed, crea el primer usuario. Pide la contraseña sin mostrarla, exige al menos 12 caracteres y no acepta credenciales como argumentos. Si ya existe una cuenta real con otro correo, se detiene para no crear un usuario adicional por accidente.
 
 6. Inicia la API y el frontend en dos terminales:
 
@@ -86,6 +86,12 @@ npm run build
 
 También puedes ejecutar toda la verificación con `npm run verify`.
 
+La preparación operativa completa comprueba también migraciones, permisos de `.env`, credencial inicial, conexión y salud de la API:
+
+```bash
+npm run ready:check
+```
+
 Las pruebas de autorización usan una base exclusiva y ya migrada, nunca una base con datos reales:
 
 ```bash
@@ -96,6 +102,17 @@ dropdb trato_e2e
 ```
 
 La suite e2e limpia por completo la base indicada en `TEST_DATABASE_URL` antes de preparar sus casos. Comprueba acceso anónimo, aislamiento entre usuarios y proyectos, registros cruzados, actividades, tareas, operaciones idempotentes, CSRF, limitación de intentos, cierre de sesión y los ciclos de proyectos y registros.
+
+Existe además un recorrido Chromium automatizado con viewport Pixel 5. Usa una base desechable cuyo nombre incluya `test` o `e2e`:
+
+```bash
+export NODE_ENV=test
+export TEST_DATABASE_URL=postgresql://trato@localhost:5432/trato_browser_e2e
+npx playwright install chromium
+npm run test:browser
+```
+
+El comando fuerza `DATABASE_URL` a la conexión desechable antes de migrar o cargar el seed. La prueba inicia API y Angular en los puertos 3100 y 4300, valida login, navegación móvil, enlaces, CSV, registro de contacto, Seguimientos y logout. Nunca apuntes estas pruebas a una base real.
 
 La prueba integral del endpoint requiere que PostgreSQL esté activo:
 
@@ -161,6 +178,7 @@ Sirve la web y la API bajo el mismo sitio HTTPS, configura `NODE_ENV=production`
 No ejecutes `db:seed` en producción. Después de desplegar migraciones, crea el usuario mediante `npm run user:create` directamente en una terminal segura del servidor.
 
 La guía completa de compilación, secretos, migraciones, copias, restauración, salud y limitaciones está en [`docs/operacion.md`](docs/operacion.md).
+La lista para publicar o actualizar una instalación está en [`docs/despliegue.md`](docs/despliegue.md).
 
 ## Estructura
 

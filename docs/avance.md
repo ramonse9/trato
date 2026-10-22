@@ -85,4 +85,6 @@ Esta etapa no requiere migración de esquema. Verificado el 22 de octubre de 202
 
 También se ensayó una copia real en formato personalizado y su restauración transaccional en otra base vacía. Coincidieron los conteos de usuarios, proyectos, registros, actividades, tareas, operaciones idempotentes y migraciones. La revisión responsive a 390 × 844 confirmó inicio de sesión, proyecto visible, navegación inferior, tarjetas, registrar contacto, enlaces externos y el control de exportación con su advertencia. Las bases y archivos temporales del ensayo se eliminaron al terminar.
 
+Endurecimiento posterior: CI con PostgreSQL 17, recorrido Chromium móvil, diagnóstico de preparación, scripts seguros de copia y restauración, permisos privados para `.env` y una lista de despliegue y reversión. El usuario ficticio sin contraseña puede adoptar el nombre y correo elegidos mediante el procedimiento administrativo sin romper la propiedad de sus proyectos.
+
 Cada etapa deberá agregar sus migraciones, pruebas y notas de ejecución sin adelantar funciones de etapas posteriores.

@@ -147,6 +147,8 @@ Las rutas de cartera llevan contexto explícito: `/api/projects/:projectId/recor
 - Producción exige PostgreSQL 17 o 18, HTTPS, un origen web exacto y secretos inyectados mediante variables de entorno. La API valida la configuración crítica antes de iniciar.
 - Las migraciones de producción usan exclusivamente los archivos versionados y `prisma migrate deploy`; el seed de desarrollo nunca se ejecuta en producción.
 - La operación inicial requiere respaldos externos periódicos, pruebas de restauración, monitoreo de salud y espacio disponible. Estas tareas no se automatizan dentro de la aplicación.
+- La verificación continua usa una base PostgreSQL descartable y un recorrido Chromium móvil. Ninguna prueba automatizada puede apuntar a la base real.
+- Los respaldos se guardan fuera del repositorio con permisos restrictivos, verificación del catálogo y ensayo de restauración en una base temporal.
 
 ## Principios de entrega
 

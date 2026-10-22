@@ -8,6 +8,8 @@ import { PrismaService } from '../src/prisma/prisma.service.js';
 
 loadEnv({ path: resolve(process.cwd(), '../../.env') });
 
+const DEVELOPMENT_SEED_USER_ID = '10000000-0000-4000-8000-000000000001';
+
 let hideInput = false;
 const hiddenOutput = new Writable({
   write(chunk: Buffer | string, _encoding, callback) {
@@ -54,11 +56,18 @@ async function main(): Promise<void> {
   const prisma = new PrismaService();
   try {
     const users = await prisma.usuario.findMany({
-      select: { id: true, correo: true },
+      select: { id: true, correo: true, passwordHash: true },
     });
+    const existing = users[0];
+    const uninitializedDevelopmentUser =
+      users.length === 1 &&
+      existing?.id === DEVELOPMENT_SEED_USER_ID &&
+      existing.passwordHash === null;
     if (
       users.length > 1 ||
-      (users.length === 1 && users[0]?.correo !== correo)
+      (users.length === 1 &&
+        existing?.correo !== correo &&
+        !uninitializedDevelopmentUser)
     ) {
       throw new Error(
         'Ya existe otro usuario. Este comando solo administra al usuario inicial.',
@@ -66,9 +75,9 @@ async function main(): Promise<void> {
     }
 
     const passwordHash = await hashPassword(password);
-    const user = users[0]
+    const user = existing
       ? await prisma.usuario.update({
-          where: { id: users[0].id },
+          where: { id: existing.id },
           data: { nombre, correo, passwordHash },
           select: { correo: true },
         })

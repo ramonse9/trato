@@ -47,7 +47,7 @@ Esta guía cubre desarrollo, despliegue, migraciones, secretos, respaldo, restau
    npm run user:create
    ```
 
-   El procedimiento no acepta la contraseña como argumento ni la guarda en archivos. Si se cargó el seed, utiliza `desarrollo@trato.local` para asociar la credencial con los proyectos ficticios.
+   El procedimiento no acepta la contraseña como argumento ni la guarda en archivos. Si existe únicamente el usuario del seed y todavía no tiene contraseña, permite reemplazar su nombre y correo conservando los proyectos ficticios.
 
 6. Inicia API y web en terminales distintas:
 
@@ -64,9 +64,14 @@ La web queda en `http://localhost:4200` y la API en `http://localhost:3000/api`.
 npm run verify
 npm run db:status
 curl --fail http://localhost:3000/api/health
+npm run ready:check
 ```
 
 Las pruebas e2e destruyen el contenido de `TEST_DATABASE_URL`. Debe ser una base exclusiva cuyo nombre indique claramente que es de pruebas; nunca uses la base local normal ni producción.
+
+`npm run test:browser` añade una comprobación Chromium en tamaño Pixel 5. Requiere `TEST_DATABASE_URL` apuntando a una base desechable y el navegador instalado con `npx playwright install chromium`. El comando fuerza `NODE_ENV=test` y `DATABASE_URL` a esa conexión antes de migrar o cargar datos; además rechaza nombres de base que no incluyan `test` o `e2e`.
+
+El workflow `.github/workflows/ci.yml` reproduce Prisma, lint, unitarias, build, e2e de API y navegador en cada cambio de `main` y cada pull request.
 
 ## Configuración y secretos de producción
 
@@ -138,6 +143,14 @@ PGDATABASE=trato pg_dump \
 pg_restore --list backups/trato-AAAA-MM-DD.dump > /dev/null
 ```
 
+El repositorio incluye un envoltorio que crea archivos privados, verifica el catálogo y añade una suma SHA-256. `BACKUP_DIR` debe estar fuera del repositorio:
+
+```bash
+export PGHOST=localhost PGPORT=5432 PGUSER=trato PGDATABASE=trato
+export BACKUP_DIR=/ruta/privada/respaldos-trato
+npm run db:backup
+```
+
 El archivo contiene las tablas completas, incluidos proyectos, registros, actividades, historial, tareas pendientes y completadas. Cifra el respaldo, limita sus permisos, guárdalo fuera del servidor principal y define retención y pruebas periódicas de restauración. `pg_dump` produce una copia consistente sin bloquear lectores o escritores; PostgreSQL recomienda respaldos regulares y documenta sus formatos en [`pg_dump`](https://www.postgresql.org/docs/current/app-pgdump.html).
 
 ## Restauración comprobable
@@ -164,6 +177,12 @@ Después:
 
 `pg_restore --exit-on-error --single-transaction` evita aceptar silenciosamente una restauración parcial. Consulta la [referencia oficial de `pg_restore`](https://www.postgresql.org/docs/current/app-pgrestore.html).
 
+También puede ensayarse con una base temporal nueva; el script la elimina al terminar salvo que se establezca `KEEP_RESTORE_DB=1`. `PGADMINUSER` identifica el rol autorizado para crear y eliminar esa base; si se omite, usa el usuario del sistema. `PGUSER` continúa siendo el rol limitado que restaura y consulta:
+
+```bash
+npm run db:restore:check -- /ruta/privada/trato.dump trato_restore_aaaammdd
+```
+
 ## Comprobaciones de salud
 
 - `GET /api/health` debe responder `200`, `status: "ok"` y `database: "up"`.
@@ -181,3 +200,5 @@ Después:
 - El CSV es una vista tabular de la cartera, no contiene todo el historial y no sustituye `pg_dump`.
 - Los respaldos, rotación, monitoreo, TLS y alta disponibilidad dependen del entorno de operación; la aplicación no los automatiza.
 - La recuperación a un punto exacto en el tiempo requiere archivado WAL/PITR del proveedor y no forma parte de esta instalación inicial.
+
+Antes de publicar o actualizar, sigue la lista verificable de `docs/despliegue.md`.

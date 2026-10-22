@@ -23,7 +23,9 @@
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "db:seed": "prisma db seed",
-    "user:create": "tsx scripts/create-initial-user.ts"
+    "user:create": "tsx scripts/create-initial-user.ts",
+    "test:browser:prepare": "tsx scripts/prepare-browser-test.ts",
+    "readiness:check": "tsx scripts/check-readiness.ts"
   },
   "dependencies": {
     "@nestjs/common": "12.2.0",
