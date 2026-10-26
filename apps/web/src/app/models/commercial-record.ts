@@ -13,6 +13,7 @@ export type InterestLevel = 'SIN_EVALUAR' | 'BAJO' | 'MEDIO' | 'ALTO';
 export type ActivityType = 'LLAMADA' | 'WHATSAPP' | 'VISITA' | 'DEMO' | 'NOTA';
 export type TaskType = 'LLAMADA' | 'WHATSAPP' | 'VISITA' | 'DEMO' | 'ENVIAR_PROPUESTA' | 'OTRO';
 export type FollowUpStatus = 'ROJO' | 'AMARILLO' | 'VERDE' | 'GRIS';
+export type RecordOrder = 'ANTIGUOS_PRIMERO' | 'RECIENTES_PRIMERO';
 
 export const COMMERCIAL_STAGES: ReadonlyArray<{
   value: CommercialStage;
@@ -156,6 +157,7 @@ export interface RecordListQuery {
   etapa?: CommercialStage;
   nivelInteres?: InterestLevel;
   archived?: boolean;
+  orden: RecordOrder;
 }
 
 export interface RecordUpdateInput {

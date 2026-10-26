@@ -65,6 +65,14 @@
     </mat-select>
   </mat-form-field>
 
+  <mat-form-field appearance="outline">
+    <mat-label>Orden de registro</mat-label>
+    <mat-select formControlName="orden" (selectionChange)="applyFilters()">
+      <mat-option value="ANTIGUOS_PRIMERO">Primeros registrados</mat-option>
+      <mat-option value="RECIENTES_PRIMERO">Últimos registrados</mat-option>
+    </mat-select>
+  </mat-form-field>
+
   <div class="filter-actions">
     <button mat-flat-button type="submit">Aplicar</button>
     <button mat-stroked-button type="button" (click)="clearFilters()">Limpiar filtros</button>

@@ -24,7 +24,8 @@ export class RecordsService {
     let params = new HttpParams()
       .set('page', query.page)
       .set('pageSize', query.pageSize)
-      .set('archived', query.archived ?? false);
+      .set('archived', query.archived ?? false)
+      .set('orden', query.orden);
     if (query.search) params = params.set('search', query.search);
     if (query.etapa) params = params.set('etapa', query.etapa);
     if (query.nivelInteres) params = params.set('nivelInteres', query.nivelInteres);

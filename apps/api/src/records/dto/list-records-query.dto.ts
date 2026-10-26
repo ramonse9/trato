@@ -11,6 +11,11 @@ import {
 } from 'class-validator';
 import { EtapaComercial, NivelInteres } from '../../generated/prisma/client.js';
 
+export enum OrdenRegistro {
+  ANTIGUOS_PRIMERO = 'ANTIGUOS_PRIMERO',
+  RECIENTES_PRIMERO = 'RECIENTES_PRIMERO',
+}
+
 export class ListRecordsQueryDto {
   @Type(() => Number)
   @IsInt()
@@ -46,4 +51,7 @@ export class ListRecordsQueryDto {
   })
   @IsBoolean()
   archived = false;
+
+  @IsEnum(OrdenRegistro)
+  orden: OrdenRegistro = OrdenRegistro.ANTIGUOS_PRIMERO;
 }

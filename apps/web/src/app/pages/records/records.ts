@@ -20,6 +20,7 @@ import {
   CommercialStage,
   INTEREST_LEVELS,
   InterestLevel,
+  RecordOrder,
   interestLabel,
   stageLabel,
 } from '../../models/commercial-record';
@@ -62,6 +63,7 @@ export class Records {
     search: new FormControl('', { nonNullable: true }),
     etapa: new FormControl<CommercialStage | ''>('', { nonNullable: true }),
     nivelInteres: new FormControl<InterestLevel | ''>('', { nonNullable: true }),
+    orden: new FormControl<RecordOrder>('ANTIGUOS_PRIMERO', { nonNullable: true }),
   });
 
   constructor() {
@@ -70,7 +72,12 @@ export class Records {
       this.context.revision();
       untracked(() => {
         this.cancelRequest();
-        this.filters.reset({ search: '', etapa: '', nivelInteres: '' });
+        this.filters.reset({
+          search: '',
+          etapa: '',
+          nivelInteres: '',
+          orden: 'ANTIGUOS_PRIMERO',
+        });
         this.archived.set(false);
         this.page.set(1);
         this.records.set([]);
@@ -89,7 +96,12 @@ export class Records {
   }
 
   clearFilters(): void {
-    this.filters.reset({ search: '', etapa: '', nivelInteres: '' });
+    this.filters.reset({
+      search: '',
+      etapa: '',
+      nivelInteres: '',
+      orden: 'ANTIGUOS_PRIMERO',
+    });
     this.applyFilters();
   }
 
@@ -197,6 +209,7 @@ export class Records {
         etapa: values.etapa || undefined,
         nivelInteres: values.nivelInteres || undefined,
         archived: this.archived(),
+        orden: values.orden,
       })
       .subscribe({
         next: (response) => {

@@ -13,7 +13,10 @@ import {
 import { PrismaService } from '../prisma/prisma.service.js';
 import { ProjectAccessService } from '../projects/project-access.service.js';
 import { CreateRecordDto } from './dto/create-record.dto.js';
-import { ListRecordsQueryDto } from './dto/list-records-query.dto.js';
+import {
+  ListRecordsQueryDto,
+  OrdenRegistro,
+} from './dto/list-records-query.dto.js';
 import { UpdateRecordDto } from './dto/update-record.dto.js';
 import {
   CompleteTaskDto,
@@ -79,13 +82,15 @@ export class RecordsService {
         : {}),
     };
     const skip = (query.page - 1) * query.pageSize;
+    const direction =
+      query.orden === OrdenRegistro.RECIENTES_PRIMERO ? 'desc' : 'asc';
     const [total, records] = await this.prisma.$transaction([
       this.prisma.registroComercial.count({ where }),
       this.prisma.registroComercial.findMany({
         where,
         skip,
         take: query.pageSize,
-        orderBy: [{ nombreNegocio: 'asc' }, { id: 'asc' }],
+        orderBy: [{ creadoEn: direction }, { id: direction }],
         select: {
           ...recordSelect,
           actividades: {

@@ -89,4 +89,6 @@ Endurecimiento posterior: CI con PostgreSQL 17, recorrido Chromium móvil, diagn
 
 Mejora de captura móvil: la ficha acepta coordenadas pegadas como `latitud, longitud` y las redondea a la precisión existente antes de conservarlas en columnas separadas. El teléfono se edita como código de país visible —con `+52` inicial— y número nacional legible, pero continúa persistiendo un único E.164 compatible con WhatsApp. No requiere migración y mantiene los registros existentes. Verificado con ocho pruebas unitarias nuevas y el recorrido Chromium móvil completo.
 
+Orden de cartera: el backend pagina por fecha de creación ascendente de forma predeterminada, con el identificador como desempate estable, para mostrar primero el primer registro capturado. La interfaz permite invertir inmediatamente el orden y comenzar por los registros más recientes; búsqueda, filtros, activos y archivados conservan la misma regla.
+
 Cada etapa deberá agregar sus migraciones, pruebas y notas de ejecución sin adelantar funciones de etapas posteriores.

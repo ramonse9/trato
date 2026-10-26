@@ -90,7 +90,7 @@ Las rutas de cartera llevan contexto explícito: `/api/projects/:projectId/recor
 
 - Un `RegistroComercial` sigue siendo la única ficha durante todo el ciclo. La etapa `CLIENTE` hace que se presente como cliente; no se copia ni se crea una segunda entidad y se conservan actividades, tareas y notas.
 - Crear un prospecto exige únicamente el nombre del negocio. Encargado, teléfono, correo, dirección, interés y notas se completan después si se conocen.
-- El listado siempre exige un proyecto en la ruta y se pagina en el backend con 20 elementos por defecto y un máximo de 50. Permite buscar por negocio, encargado o teléfono, y filtrar por etapa e interés.
+- El listado siempre exige un proyecto en la ruta y se pagina en el backend con 20 elementos por defecto y un máximo de 50. Permite buscar por negocio, encargado o teléfono, filtrar por etapa e interés y ordenar por secuencia de alta. De forma predeterminada muestra primero los registros más antiguos y permite invertir el orden para comenzar por los más recientes.
 - Último contacto y próxima acción se calculan al consultar: el primero es la actividad más reciente y la segunda es la tarea pendiente con fecha más cercana. No se mantienen campos duplicados en el registro.
 - La ficha permite editar datos generales, etapa, interés y notas. También presenta el historial y los seguimientos existentes en modo de consulta; su captura y edición corresponden a la etapa 6.
 - Archivar un registro conserva toda su información y lo retira de la cartera habitual. Los archivados se consultan por separado, permanecen en modo de solo lectura y pueden restaurarse. No existe borrado definitivo en la interfaz ni en la API inicial.

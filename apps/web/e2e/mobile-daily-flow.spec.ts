@@ -15,6 +15,17 @@ test('permite el flujo diario esencial desde un teléfono', async ({ page }) => 
 
   await page.getByRole('link', { name: 'Contactos', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Prospectos y clientes' })).toBeVisible();
+  const recordNames = page.locator('.mobile-cards .record-card-link .card-heading > strong');
+  await expect(page.getByRole('combobox', { name: 'Orden de registro' })).toContainText(
+    'Primeros registrados',
+  );
+  await expect(recordNames).toHaveText(['Cafetería Las Olas', 'Pan del Puerto']);
+  await page.getByRole('combobox', { name: 'Orden de registro' }).click();
+  await page.getByRole('option', { name: 'Últimos registrados' }).click();
+  await expect(recordNames).toHaveText(['Pan del Puerto', 'Cafetería Las Olas']);
+  await page.getByRole('combobox', { name: 'Orden de registro' }).click();
+  await page.getByRole('option', { name: 'Primeros registrados' }).click();
+  await expect(recordNames).toHaveText(['Cafetería Las Olas', 'Pan del Puerto']);
   await expect(page.getByRole('button', { name: 'Exportar CSV' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Registrar contacto' }).first()).toBeVisible();
   await expect(page.getByRole('link', { name: 'Abrir WhatsApp' }).first()).toHaveAttribute(

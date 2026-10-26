@@ -305,6 +305,70 @@ describeDatabase('Acceso privado y aislamiento (e2e)', () => {
     expect(unchanged.nombreNegocio).toBe('Negocio B');
   });
 
+  it('ordena la cartera por secuencia de registro y permite invertirla', async () => {
+    const owner = await prisma.proyectoComercial.findUniqueOrThrow({
+      where: { id: projectA },
+      select: { usuarioId: true },
+    });
+    const orderingProject = await prisma.proyectoComercial.create({
+      data: {
+        nombre: 'Proyecto para ordenar',
+        usuarioId: owner.usuarioId,
+      },
+    });
+    await prisma.registroComercial.createMany({
+      data: [
+        {
+          proyectoId: orderingProject.id,
+          nombreNegocio: 'Zeta fue el primero',
+          creadoEn: new Date('2026-01-01T18:00:00.000Z'),
+        },
+        {
+          proyectoId: orderingProject.id,
+          nombreNegocio: 'Medio fue el segundo',
+          creadoEn: new Date('2026-01-02T18:00:00.000Z'),
+        },
+        {
+          proyectoId: orderingProject.id,
+          nombreNegocio: 'Alfa fue el último',
+          creadoEn: new Date('2026-01-03T18:00:00.000Z'),
+        },
+      ],
+    });
+
+    const oldestFirst = await agent
+      .get(`/api/projects/${orderingProject.id}/records`)
+      .expect(200);
+    expect(
+      oldestFirst.body.items.map(
+        (item: { nombreNegocio: string }) => item.nombreNegocio,
+      ),
+    ).toEqual([
+      'Zeta fue el primero',
+      'Medio fue el segundo',
+      'Alfa fue el último',
+    ]);
+
+    const newestFirst = await agent
+      .get(
+        `/api/projects/${orderingProject.id}/records?orden=RECIENTES_PRIMERO`,
+      )
+      .expect(200);
+    expect(
+      newestFirst.body.items.map(
+        (item: { nombreNegocio: string }) => item.nombreNegocio,
+      ),
+    ).toEqual([
+      'Alfa fue el último',
+      'Medio fue el segundo',
+      'Zeta fue el primero',
+    ]);
+
+    await agent
+      .get(`/api/projects/${orderingProject.id}/records?orden=ALFABETICO`)
+      .expect(400);
+  });
+
   it('crea, edita, filtra, pagina, archiva y restaura registros', async () => {
     await agent
       .post(`/api/projects/${projectA}/records`)

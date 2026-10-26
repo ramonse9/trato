@@ -130,7 +130,7 @@ El identificador recordado en el navegador no concede acceso: cada ruta y operac
 
 ## Prospectos y clientes
 
-Entra en **Prospectos y clientes** para buscar y filtrar la cartera del proyecto activo. El listado muestra 20 registros por página e incluye el último contacto y la próxima tarea pendiente. En pantallas pequeñas cambia automáticamente a tarjetas.
+Entra en **Prospectos y clientes** para buscar y filtrar la cartera del proyecto activo. El listado muestra 20 registros por página e incluye el último contacto y la próxima tarea pendiente. Por defecto conserva la secuencia de captura —primero el primer registro— y el selector **Orden de registro** permite comenzar por los últimos registrados. En pantallas pequeñas cambia automáticamente a tarjetas.
 
 **Nuevo prospecto** pide solamente el nombre del negocio. Desde la ficha se completan encargado, teléfono internacional, correo, dirección, etapa, interés y notas. Elegir la etapa **Cliente** conserva el mismo registro y todo su historial.
 
