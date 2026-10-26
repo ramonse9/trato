@@ -87,4 +87,6 @@ También se ensayó una copia real en formato personalizado y su restauración t
 
 Endurecimiento posterior: CI con PostgreSQL 17, recorrido Chromium móvil, diagnóstico de preparación, scripts seguros de copia y restauración, permisos privados para `.env` y una lista de despliegue y reversión. El usuario ficticio sin contraseña puede adoptar el nombre y correo elegidos mediante el procedimiento administrativo sin romper la propiedad de sus proyectos.
 
+Mejora de captura móvil: la ficha acepta coordenadas pegadas como `latitud, longitud` y las redondea a la precisión existente antes de conservarlas en columnas separadas. El teléfono se edita como código de país visible —con `+52` inicial— y número nacional legible, pero continúa persistiendo un único E.164 compatible con WhatsApp. No requiere migración y mantiene los registros existentes. Verificado con ocho pruebas unitarias nuevas y el recorrido Chromium móvil completo.
+
 Cada etapa deberá agregar sus migraciones, pruebas y notas de ejecución sin adelantar funciones de etapas posteriores.

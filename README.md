@@ -159,9 +159,9 @@ Las tareas completadas no cuentan. Los descartados y archivados quedan fuera de 
 
 ## WhatsApp y Google Maps
 
-El listado y la ficha muestran **Abrir WhatsApp** cuando existe un teléfono E.164 válido, por ejemplo `+351211234567`. El código de país es obligatorio. El enlace abre la conversación, pero no incluye un mensaje ni registra por sí mismo un contacto realizado.
+El listado y la ficha muestran **Abrir WhatsApp** cuando existe un teléfono E.164 válido. En la ficha se captura por separado un código de país visible —inicialmente `+52` y siempre editable— y el número nacional, por ejemplo `667 123 45 67`; al guardar se normalizan como `+526671234567`. El enlace abre la conversación, pero no incluye un mensaje ni registra por sí mismo un contacto realizado.
 
-**Abrir ubicación** usa las coordenadas manuales cuando existen; en caso contrario utiliza la dirección codificada. La latitud y longitud deben capturarse juntas y respetar los rangos geográficos. Sin dirección ni coordenadas la acción no aparece.
+**Abrir ubicación** usa las coordenadas manuales cuando existen; en caso contrario utiliza la dirección codificada. Puedes pegar en un único campo el par que entrega Google Maps, por ejemplo `24.782805612467623, -107.43111031811513`; la aplicación valida los rangos y conserva latitud y longitud por separado con hasta seis decimales. Sin dirección ni coordenadas la acción no aparece.
 
 Estos accesos son enlaces HTTPS comunes. No necesitan claves, facturación, Maps JavaScript API, Places API, geocodificación ni autocompletado externo.
 

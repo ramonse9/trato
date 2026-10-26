@@ -40,11 +40,26 @@ import {
   stageLabel,
 } from '../../models/commercial-record';
 import { FollowUpPanel } from './follow-up-panel';
+import {
+  buildInternationalPhone,
+  DEFAULT_COUNTRY_CODE,
+  formatCoordinates,
+  isCoordinatesInputValid,
+  isInternationalPhoneInputValid,
+  parseCoordinatesInput,
+  splitInternationalPhone,
+} from './contact-input';
 
-function coordinatePairValidator(control: AbstractControl): ValidationErrors | null {
-  const latitude = String(control.get('latitud')?.value ?? '').trim();
-  const longitude = String(control.get('longitud')?.value ?? '').trim();
-  return Boolean(latitude) === Boolean(longitude) ? null : { coordinatePair: true };
+function phoneInputValidator(control: AbstractControl): ValidationErrors | null {
+  const countryCode = String(control.get('codigoPais')?.value ?? '');
+  const nationalNumber = String(control.get('numeroTelefono')?.value ?? '');
+  return isInternationalPhoneInputValid(countryCode, nationalNumber)
+    ? null
+    : { internationalPhone: true };
+}
+
+function coordinatesInputValidator(control: AbstractControl): ValidationErrors | null {
+  return isCoordinatesInputValid(String(control.value ?? '')) ? null : { coordinates: true };
 }
 
 @Component({
@@ -99,9 +114,13 @@ export class RecordDetail {
         nonNullable: true,
         validators: [Validators.maxLength(160)],
       }),
-      telefono: new FormControl('', {
+      codigoPais: new FormControl(DEFAULT_COUNTRY_CODE, {
         nonNullable: true,
-        validators: [Validators.pattern(/^\+[1-9]\d{7,14}$/), Validators.maxLength(16)],
+        validators: [Validators.pattern(/^\+[1-9]\d{0,2}$/), Validators.maxLength(4)],
+      }),
+      numeroTelefono: new FormControl('', {
+        nonNullable: true,
+        validators: [Validators.pattern(/^[\d\s().-]*$/), Validators.maxLength(30)],
       }),
       correo: new FormControl('', {
         nonNullable: true,
@@ -111,21 +130,9 @@ export class RecordDetail {
         nonNullable: true,
         validators: [Validators.maxLength(1000)],
       }),
-      latitud: new FormControl('', {
+      coordenadas: new FormControl('', {
         nonNullable: true,
-        validators: [
-          Validators.pattern(/^-?(?:\d+(?:\.\d+)?|\.\d+)$/),
-          Validators.min(-90),
-          Validators.max(90),
-        ],
-      }),
-      longitud: new FormControl('', {
-        nonNullable: true,
-        validators: [
-          Validators.pattern(/^-?(?:\d+(?:\.\d+)?|\.\d+)$/),
-          Validators.min(-180),
-          Validators.max(180),
-        ],
+        validators: [Validators.maxLength(64), coordinatesInputValidator],
       }),
       etapa: new FormControl<CommercialStage>('POR_CONTACTAR', { nonNullable: true }),
       nivelInteres: new FormControl<InterestLevel>('SIN_EVALUAR', { nonNullable: true }),
@@ -138,7 +145,7 @@ export class RecordDetail {
         validators: [Validators.maxLength(2000)],
       }),
     },
-    { validators: [coordinatePairValidator] },
+    { validators: [phoneInputValidator] },
   );
 
   constructor() {
@@ -165,16 +172,17 @@ export class RecordDetail {
     this.message.set(null);
     this.errorMessage.set(null);
     const values = this.form.getRawValue();
+    const coordinates = parseCoordinatesInput(values.coordenadas);
     try {
       await firstValueFrom(
         this.api.update(scope.projectId, current.id, {
           nombreNegocio: values.nombreNegocio,
           nombreEncargado: values.nombreEncargado || null,
-          telefono: values.telefono || null,
+          telefono: buildInternationalPhone(values.codigoPais, values.numeroTelefono),
           correo: values.correo || null,
           direccion: values.direccion || null,
-          latitud: values.latitud ? Number(values.latitud) : null,
-          longitud: values.longitud ? Number(values.longitud) : null,
+          latitud: coordinates?.latitude ?? null,
+          longitud: coordinates?.longitude ?? null,
           etapa: values.etapa,
           nivelInteres: values.nivelInteres,
           notasGenerales: values.notasGenerales || null,
@@ -305,14 +313,15 @@ export class RecordDetail {
   }
 
   private populateForm(record: CommercialRecordDetail): void {
+    const phone = splitInternationalPhone(record.telefono);
     this.form.reset({
       nombreNegocio: record.nombreNegocio,
       nombreEncargado: record.nombreEncargado ?? '',
-      telefono: record.telefono ?? '',
+      codigoPais: phone.countryCode,
+      numeroTelefono: phone.nationalNumber,
       correo: record.correo ?? '',
       direccion: record.direccion ?? '',
-      latitud: record.latitud ?? '',
-      longitud: record.longitud ?? '',
+      coordenadas: formatCoordinates(record.latitud, record.longitud),
       etapa: record.etapa,
       nivelInteres: record.nivelInteres,
       notasGenerales: record.notasGenerales ?? '',
@@ -329,11 +338,11 @@ export class RecordDetail {
     this.form.reset({
       nombreNegocio: '',
       nombreEncargado: '',
-      telefono: '',
+      codigoPais: DEFAULT_COUNTRY_CODE,
+      numeroTelefono: '',
       correo: '',
       direccion: '',
-      latitud: '',
-      longitud: '',
+      coordenadas: '',
       etapa: 'POR_CONTACTAR',
       nivelInteres: 'SIN_EVALUAR',
       notasGenerales: '',
@@ -359,7 +368,7 @@ export class RecordDetail {
 
   private saveError(error: unknown): string {
     return error instanceof HttpErrorResponse && error.status === 400
-      ? 'Revisa los datos de la ficha. El teléfono debe incluir código de país, por ejemplo +526691234567.'
+      ? 'Revisa el teléfono y las coordenadas. El teléfono se guarda con código de país y la ubicación como latitud, longitud.'
       : 'No fue posible guardar los cambios.';
   }
 

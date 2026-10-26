@@ -39,6 +39,17 @@ test('permite el flujo diario esencial desde un teléfono', async ({ page }) => 
   await page.getByRole('link', { name: 'Registrar contacto' }).first().click();
   await expect(page.getByRole('heading', { name: 'Cafetería Las Olas' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Nuevo contacto' })).toBeVisible();
+  await expect(page.getByRole('textbox', { name: 'Código de país' })).toHaveValue('+52');
+  await page.getByRole('textbox', { name: 'Número de teléfono' }).fill('667 123 45 67');
+  await page
+    .getByRole('textbox', { name: 'Coordenadas (latitud, longitud)' })
+    .fill('24.782805612467623, -107.43111031811513');
+  await page.getByRole('button', { name: 'Guardar cambios' }).click();
+  await expect(page.getByText('Ficha actualizada.', { exact: true })).toBeVisible();
+  await expect(page.getByRole('textbox', { name: 'Número de teléfono' })).toHaveValue('6671234567');
+  await expect(page.getByRole('textbox', { name: 'Coordenadas (latitud, longitud)' })).toHaveValue(
+    '24.782806, -107.43111',
+  );
   await page
     .getByRole('textbox', { name: 'Resumen', exact: true })
     .fill('Visita registrada desde móvil');

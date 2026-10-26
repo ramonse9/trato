@@ -81,18 +81,41 @@
               <input matInput formControlName="nombreEncargado" maxlength="160" />
             </mat-form-field>
 
-            <mat-form-field appearance="outline">
-              <mat-label>Teléfono con código de país</mat-label>
-              <input
-                matInput
-                formControlName="telefono"
-                placeholder="+526691234567"
-                inputmode="tel"
-              />
-              @if (form.controls.telefono.touched && form.controls.telefono.invalid) {
-                <mat-error>Usa formato internacional, por ejemplo +526691234567.</mat-error>
-              }
-            </mat-form-field>
+            <div class="phone-fields wide">
+              <mat-form-field appearance="outline" class="country-code">
+                <mat-label>Código de país</mat-label>
+                <input
+                  matInput
+                  formControlName="codigoPais"
+                  placeholder="+52"
+                  inputmode="tel"
+                  autocomplete="tel-country-code"
+                />
+                @if (form.controls.codigoPais.touched && form.controls.codigoPais.invalid) {
+                  <mat-error>Usa + y de 1 a 3 dígitos.</mat-error>
+                }
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Número de teléfono</mat-label>
+                <input
+                  matInput
+                  formControlName="numeroTelefono"
+                  placeholder="667 123 45 67"
+                  inputmode="tel"
+                  autocomplete="tel-national"
+                />
+                @if (form.controls.numeroTelefono.touched && form.controls.numeroTelefono.invalid) {
+                  <mat-error>Usa solo números, espacios, guiones o paréntesis.</mat-error>
+                }
+              </mat-form-field>
+            </div>
+
+            @if (form.touched && form.hasError('internationalPhone')) {
+              <p class="input-error wide" role="alert">
+                Revisa el código de país y la cantidad de dígitos del teléfono.
+              </p>
+            }
 
             <mat-form-field appearance="outline">
               <mat-label>Correo</mat-label>
@@ -138,41 +161,19 @@
               </p>
             }
 
-            <mat-form-field appearance="outline">
-              <mat-label>Latitud</mat-label>
+            <mat-form-field appearance="outline" class="wide">
+              <mat-label>Coordenadas (latitud, longitud)</mat-label>
               <input
                 matInput
-                type="number"
-                step="0.000001"
+                formControlName="coordenadas"
+                placeholder="24.782805612467623, -107.43111031811513"
                 inputmode="decimal"
-                formControlName="latitud"
-                placeholder="23.248610"
               />
-              @if (form.controls.latitud.touched && form.controls.latitud.invalid) {
-                <mat-error>Debe estar entre -90 y 90, con hasta 6 decimales.</mat-error>
+              <mat-hint>Pega el valor de Google Maps; se guardará con hasta 6 decimales.</mat-hint>
+              @if (form.controls.coordenadas.touched && form.controls.coordenadas.invalid) {
+                <mat-error>Usa latitud, longitud dentro de sus rangos válidos.</mat-error>
               }
             </mat-form-field>
-
-            <mat-form-field appearance="outline">
-              <mat-label>Longitud</mat-label>
-              <input
-                matInput
-                type="number"
-                step="0.000001"
-                inputmode="decimal"
-                formControlName="longitud"
-                placeholder="-106.455310"
-              />
-              @if (form.controls.longitud.touched && form.controls.longitud.invalid) {
-                <mat-error>Debe estar entre -180 y 180, con hasta 6 decimales.</mat-error>
-              }
-            </mat-form-field>
-
-            @if (form.touched && form.hasError('coordinatePair')) {
-              <p class="coordinate-error wide" role="alert">
-                Captura latitud y longitud juntas, o deja ambas vacías.
-              </p>
-            }
 
             @if (form.controls.etapa.value === 'DESCARTADO') {
               <mat-form-field appearance="outline" class="wide">

@@ -119,9 +119,9 @@ Las rutas de cartera llevan contexto explícito: `/api/projects/:projectId/recor
 
 ## WhatsApp y Google Maps
 
-- El teléfono se captura en formato E.164 con `+`, código de país y número. Angular, NestJS y PostgreSQL lo validan; la aplicación no supone un país predeterminado ni completa códigos silenciosamente.
+- El teléfono se captura mediante un código de país visible y editable, inicialmente `+52`, y un número nacional que admite espacios, guiones y paréntesis. Antes de enviarlo, Angular normaliza ambas partes a un único E.164; NestJS y PostgreSQL continúan validando el valor persistido. El valor inicial facilita México sin ocultar ni impedir otros códigos.
 - El enlace de WhatsApp tiene exclusivamente la forma `https://wa.me/<dígitos>`. No incluye texto, no envía mensajes y abrirlo no crea una actividad ni modifica el último contacto.
-- La dirección, latitud y longitud se capturan manualmente. Las coordenadas deben guardarse juntas, con latitud entre -90 y 90, longitud entre -180 y 180 y hasta seis decimales.
+- La dirección se captura manualmente. La interfaz recibe las coordenadas en un solo campo `latitud, longitud`, compatible con el texto copiado de Google Maps, y lo separa al guardar. PostgreSQL conserva las dos columnas numéricas, con latitud entre -90 y 90, longitud entre -180 y 180 y hasta seis decimales.
 - Google Maps usa `https://www.google.com/maps/search/?api=1&query=`. Prefiere el par de coordenadas válido; si no existe, usa la dirección completa codificada. Sin ninguno de los dos datos no se muestra la acción.
 - La ficha advierte que una dirección incompleta puede producir resultados imprecisos. La dirección guardada y la acción “Abrir ubicación” llevan al mismo enlace calculado.
 - Los enlaces externos parten de prefijos HTTPS constantes, codifican los datos variables, abren en otra pestaña y usan `rel="noopener noreferrer"`.
