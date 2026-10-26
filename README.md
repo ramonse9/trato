@@ -134,6 +134,8 @@ Entra en **Prospectos y clientes** para buscar y filtrar la cartera del proyecto
 
 **Nuevo prospecto** pide solamente el nombre del negocio. Desde la ficha se completan encargado, teléfono internacional, correo, dirección, etapa, interés y notas. Elegir la etapa **Cliente** conserva el mismo registro y todo su historial.
 
+Las etapas se muestran numeradas de `0 - Por contactar` a `8 - Descartado`; el interés va de `0 - Sin evaluar` a `3 - Alto`. Estos números son referencias visibles del orden de las opciones y no cambian los valores internos ni duplican información.
+
 Los registros archivados se encuentran en la vista **Archivados** del mismo listado. Pueden consultarse y restaurarse, pero no editarse mientras continúen archivados. No hay una acción de borrado definitivo.
 
 ## Historial y seguimientos

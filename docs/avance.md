@@ -91,4 +91,6 @@ Mejora de captura móvil: la ficha acepta coordenadas pegadas como `latitud, lon
 
 Orden de cartera: el backend pagina por fecha de creación ascendente de forma predeterminada, con el identificador como desempate estable, para mostrar primero el primer registro capturado. La interfaz permite invertir inmediatamente el orden y comenzar por los registros más recientes; búsqueda, filtros, activos y archivados conservan la misma regla.
 
+Etiquetas comerciales numeradas: etapas e interés muestran ordinales desde cero en formularios, filtros, fichas, listados, historial y CSV. Los enums y la persistencia no cambian, por lo que no se requiere migración ni se alteran registros existentes.
+
 Cada etapa deberá agregar sus migraciones, pruebas y notas de ejecución sin adelantar funciones de etapas posteriores.

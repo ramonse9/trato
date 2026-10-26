@@ -15,6 +15,9 @@ test('permite el flujo diario esencial desde un teléfono', async ({ page }) => 
 
   await page.getByRole('link', { name: 'Contactos', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Prospectos y clientes' })).toBeVisible();
+  const mobileCards = page.locator('.mobile-cards');
+  await expect(mobileCards.getByText('7 - Cliente', { exact: true }).first()).toBeVisible();
+  await expect(mobileCards.getByText('2 - Contactado', { exact: true }).first()).toBeVisible();
   const recordNames = page.locator('.mobile-cards .record-card-link .card-heading > strong');
   await expect(page.getByRole('combobox', { name: 'Orden de registro' })).toContainText(
     'Primeros registrados',

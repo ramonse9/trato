@@ -222,8 +222,8 @@ describeDatabase('Acceso privado y aislamiento (e2e)', () => {
     expect(exported.text).toContain('"Etapa comercial"');
     expect(exported.text).toContain('"Nivel de interés"');
     expect(exported.text).toContain('"Próxima acción"');
-    expect(exported.text).toContain('"Propuesta enviada"');
-    expect(exported.text).toContain('"Alto"');
+    expect(exported.text).toContain('"5 - Propuesta enviada"');
+    expect(exported.text).toContain('"3 - Alto"');
     expect(exported.text).toContain('"2026-11-15"');
     expect(exported.text).toContain('"\'=HYPERLINK');
     expect(exported.text).toContain('"\'+Enviar propuesta final"');

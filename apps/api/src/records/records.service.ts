@@ -665,25 +665,25 @@ export class RecordsService {
 
   private stageLabel(stage: EtapaComercial): string {
     const labels: Record<EtapaComercial, string> = {
-      POR_CONTACTAR: 'Por contactar',
-      BUSCANDO_ENCARGADO: 'Buscando al encargado',
-      CONTACTADO: 'Contactado',
-      DEMO_PENDIENTE: 'Demo pendiente',
-      DEMO_REALIZADA: 'Demo realizada',
-      PROPUESTA_ENVIADA: 'Propuesta enviada',
-      EN_NEGOCIACION: 'En negociación',
-      CLIENTE: 'Cliente',
-      DESCARTADO: 'Descartado',
+      POR_CONTACTAR: '0 - Por contactar',
+      BUSCANDO_ENCARGADO: '1 - Buscando al encargado',
+      CONTACTADO: '2 - Contactado',
+      DEMO_PENDIENTE: '3 - Demo pendiente',
+      DEMO_REALIZADA: '4 - Demo realizada',
+      PROPUESTA_ENVIADA: '5 - Propuesta enviada',
+      EN_NEGOCIACION: '6 - En negociación',
+      CLIENTE: '7 - Cliente',
+      DESCARTADO: '8 - Descartado',
     };
     return labels[stage];
   }
 
   private interestLabel(interest: NivelInteres): string {
     const labels: Record<NivelInteres, string> = {
-      SIN_EVALUAR: 'Sin evaluar',
-      BAJO: 'Bajo',
-      MEDIO: 'Medio',
-      ALTO: 'Alto',
+      SIN_EVALUAR: '0 - Sin evaluar',
+      BAJO: '1 - Bajo',
+      MEDIO: '2 - Medio',
+      ALTO: '3 - Alto',
     };
     return labels[interest];
   }

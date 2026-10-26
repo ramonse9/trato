@@ -19,25 +19,25 @@ export const COMMERCIAL_STAGES: ReadonlyArray<{
   value: CommercialStage;
   label: string;
 }> = [
-  { value: 'POR_CONTACTAR', label: 'Por contactar' },
-  { value: 'BUSCANDO_ENCARGADO', label: 'Buscando al encargado' },
-  { value: 'CONTACTADO', label: 'Contactado' },
-  { value: 'DEMO_PENDIENTE', label: 'Demo pendiente' },
-  { value: 'DEMO_REALIZADA', label: 'Demo realizada' },
-  { value: 'PROPUESTA_ENVIADA', label: 'Propuesta enviada' },
-  { value: 'EN_NEGOCIACION', label: 'En negociación' },
-  { value: 'CLIENTE', label: 'Cliente' },
-  { value: 'DESCARTADO', label: 'Descartado' },
+  { value: 'POR_CONTACTAR', label: '0 - Por contactar' },
+  { value: 'BUSCANDO_ENCARGADO', label: '1 - Buscando al encargado' },
+  { value: 'CONTACTADO', label: '2 - Contactado' },
+  { value: 'DEMO_PENDIENTE', label: '3 - Demo pendiente' },
+  { value: 'DEMO_REALIZADA', label: '4 - Demo realizada' },
+  { value: 'PROPUESTA_ENVIADA', label: '5 - Propuesta enviada' },
+  { value: 'EN_NEGOCIACION', label: '6 - En negociación' },
+  { value: 'CLIENTE', label: '7 - Cliente' },
+  { value: 'DESCARTADO', label: '8 - Descartado' },
 ];
 
 export const INTEREST_LEVELS: ReadonlyArray<{
   value: InterestLevel;
   label: string;
 }> = [
-  { value: 'SIN_EVALUAR', label: 'Sin evaluar' },
-  { value: 'BAJO', label: 'Bajo' },
-  { value: 'MEDIO', label: 'Medio' },
-  { value: 'ALTO', label: 'Alto' },
+  { value: 'SIN_EVALUAR', label: '0 - Sin evaluar' },
+  { value: 'BAJO', label: '1 - Bajo' },
+  { value: 'MEDIO', label: '2 - Medio' },
+  { value: 'ALTO', label: '3 - Alto' },
 ];
 
 export interface LastContact {
